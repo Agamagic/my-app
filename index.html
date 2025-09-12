@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Flashcards EN↔ES — One File</title>
+
+<!-- 🔹 PWA блок -->
+<link rel="manifest" href="/my-app/manifest.json">
+<meta name="theme-color" content="#0d0d0d">
+
+<!-- Для iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="/my-app/icon-192.png">
+
+<style>
+  /* 👇 твой оригинальный CSS */
+  :root{
+    --bg0:#0b0a12; --bg1:#141126; --grad1:#5b3ee4; --grad2:#a25bff;
+    --text:#f6f5ff; --muted:#c6c2df; --green:#25a46a; --blue:#2b74ff; --red:#ff4d6d;
+    --card:#1b1733; --shadow: 0 10px 30px rgba(0,0,0,.35), 0 6px 18px rgba(42,22,87,.25);
+    --radius:18px; --ease:cubic-bezier(.22,.61,.36,1); --shadow-soft: 0 8px 20px rgba(90,64,200,.25);
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0;color:var(--text);
+    background: radial-gradient(1200px 600px at 20% -10%, rgba(162,91,255,.25), transparent 60%),
+               radial-gradient(1000px 700px at 120% 10%, rgba(91,62,228,.25), transparent 60%),
+               linear-gradient(180deg, var(--bg1), var(--bg0));
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  }
+  /* … остальной твой CSS без изменений … */
+</style>
+</head>
+<body>
+<div class="wrap" id="app" aria-live="polite">
+  <!-- 👇 всё твоё содержимое приложения без изменений -->
+  …  
+</div>
+
+<!-- 👇 твой основной скрипт (без изменений) -->
+<script>
+  (()=>{
+    // … твой большой JS-код …
+  })();
+</script>
+
+<!-- 🔹 Регистрация Service Worker -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/my-app/sw.js")
+      .then(() => console.log("Service Worker зарегистрирован"))
+      .catch(err => console.error("Ошибка Service Worker:", err));
+  });
+}
+</script>
+</body>
+</html>
