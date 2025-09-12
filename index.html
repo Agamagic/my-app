@@ -4,6 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Flashcards EN↔ES — One File</title>
+
+<!-- 🔹 PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0d0d">
+
+<!-- 🔹 iOS (иконка и полноэкранный режим) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <style>
   :root{
     --bg0:#0b0a12; --bg1:#141126; --grad1:#5b3ee4; --grad2:#a25bff;
@@ -227,7 +237,7 @@
   const btnLearned=$('#btnLearned'), btnRepeat=$('#btnRepeat');
   const tabFlash=$('#tabFlash'), tabQuiz=$('#tabQuiz'), viewFlash=$('#viewFlash'), viewQuiz=$('#viewQuiz');
   const btnSettings=$('#btnSettings'), btnAdd=$('#btnAdd'), dlgSettings=$('#dlgSettings');
-  const dlgAdd=$('#dlgAdd'), addForm=$('#addForm'), addFront=$('#addFront'), addBack=$('#addBack');
+  const dlgAdd=$('#dlgAdd'), addForm=$('#addForm'), addFront=$('#addFront'), addBack=$('#addBack']);
   const btnClearAdd=$('#btnClearAdd'), btnExport=$('#btnExport'), fileImport=$('#fileImport');
   const quizMeta=$('#quizMeta'), quizPrompt=$('#quizPrompt'), quizOpts=$('#quizOpts'), quizRestart=$('#quizRestart');
   const autoTranslate=$('#autoTranslate'), btnTranslate=$('#btnTranslate'), btnSwap=$('#btnSwap'), trStatus=$('#trStatus');
@@ -399,14 +409,14 @@
   const NOUNS = {
     "airport":{es:"aeropuerto",g:"m"},"station":{es:"estación",g:"f"},"bus":{es:"autobús",g:"m"},"train":{es:"tren",g:"m"},
     "taxi":{es:"taxi",g:"m"},"subway":{es:"metro",g:"m"},"ticket":{es:"billete",g:"m"},"toilet":{es:"baño",g:"m"},
-    "bathroom":{es:"baño",g:"m"},"pharmacy":{es:"farmacia",g:"f"},"hospital":{es:"hospital",g:"m"},"doctor":{es:"médico",g:"m"},
+    "bathroom":{es:"baño",g:"m"},"pharmacy":{es:"farmacia",g:"f"},"hospital":{es:"hospital",g:"m"},"doctor":{es:"мédico",g:"m"},
     "police":{es:"policía",g:"f"},"hotel":{es:"hotel",g:"m"},"room":{es:"habitación",g:"f"},"key":{es:"llave",g:"f"},
     "reception":{es:"recepción",g:"f"},"restaurant":{es:"restaurante",g:"m"},"menu":{es:"menú",g:"m"},"breakfast":{es:"desayuno",g:"m"},
     "lunch":{es:"almuerzo",g:"m"},"dinner":{es:"cena",g:"f"},"water":{es:"agua",g:"f"},"coffee":{es:"café",g:"m"},
     "tea":{es:"té",g:"m"},"beer":{es:"cerveza",g:"f"},"wine":{es:"vino",g:"m"},"bread":{es:"pan",g:"m"},
     "bottle":{es:"botella",g:"f"},"glass":{es:"vaso",g:"m"},"plate":{es:"plato",g:"m"},"fork":{es:"tenedor",g:"m"},
     "knife":{es:"cuchillo",g:"m"},"spoon":{es:"cuchara",g:"f"},"napkin":{es:"servilleta",g:"f"},"salt":{es:"sal",g:"f"},
-    "sugar":{es:"azúcar",g:"m"},"pepper":{es:"pimienta",g:"f"},"oil":{es:"aceite",g:"m"},"bill":{es:"cuenta",g:"f"},
+    "sugar":{es:"azúcar",g:"m"},"pepper":{es:"pimienta",g:"f"},"oil":{es:"aceite",g:"м"},"bill":{es:"cuenta",g:"f"},
     "receipt":{es:"recibo",g:"m"},"discount":{es:"descuento",g:"m"},"market":{es:"mercado",g:"m"},"supermarket":{es:"supermercado",g:"m"},
     "store":{es:"tienda",g:"f"},"shop":{es:"tienda",g:"f"},"cash":{es:"efectivo",g:"m"},"card":{es:"tarjeta",g:"f"},
     "bank":{es:"banco",g:"m"},"atm":{es:"cajero",g:"m"},"map":{es:"mapa",g:"m"},"street":{es:"calle",g:"f"},
@@ -427,7 +437,6 @@
     "one ticket, please":"un billete, por favor","water, please":"agua, por favor","i would like":"me gustaría","i need help":"necesito ayuda"
   };
 
-  // Простые числа (0-100) для фраз "… euros"
   const NUM = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
   function enNumberToEs(s){
     const m = s.match(/^(\d{1,3})(\s+)?(euros|euro)?$/);
@@ -441,9 +450,8 @@
     return null;
   }
 
-  function art(word, g){ // артикль с учётом начального ударного a- (agua → el agua)
+  function art(word, g){
     if(g==='m') return 'el ' + word;
-    // femeninos con a- tónica usan "el" в ед. числе (agua, águila…)
     if(g==='f' && /^[aá]gua|^[aá]guila|^[aá]rpa|^[aá]rea/.test(word)) return 'el ' + word;
     return 'la ' + word;
   }
@@ -451,7 +459,6 @@
   function findNoun(en){
     const k = en.toLowerCase().trim();
     if(NOUNS[k]) return NOUNS[k];
-    // попытка без артикля
     const noArticle = k.replace(/^(the|a|an)\s+/,'').trim();
     return NOUNS[noArticle] || null;
   }
@@ -460,23 +467,19 @@
     let t = s.trim().toLowerCase().replace(/\s+/g,' ');
     if(FIXED_EN2ES[t]) return FIXED_EN2ES[t];
 
-    // Числа / цены
     const num = enNumberToEs(t);
     if(num) return num;
 
-    // where is the [NOUN]
     let m = t.match(/^where\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
     if(m){
       const n = findNoun(m[2]); if(n) return `¿dónde está ${art(n.es,n.g)}?`;
     }
 
-    // do you have [NOUN]
     m = t.match(/^do\s+you\s+have\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
     if(m){
       const n = findNoun(m[2]); if(n) return `¿tiene ${art(n.es,n.g)}?`;
     }
 
-    // i need / i want / i would like [NOUN]
     m = t.match(/^i\s+(need|want|would like)\s+(the\s+|a\s+|an\s+)?(.+)\.?$/);
     if(m){
       const verb = m[1]==='need' ? 'necesito' : (m[1]==='want' ? 'quiero' : 'me gustaría');
@@ -484,40 +487,34 @@
       if(n) return `${verb} ${art(n.es,n.g)}`;
     }
 
-    // one/two ... [NOUN] please
     m = t.match(/^(one|two|three|four|five)\s+(.+)\s+please\.?$/);
     if(m){
       const numMap = {one:'un',two:'dos',three:'tres',four:'cuatro',five:'cinco'};
       const n = findNoun(m[2]); if(n) return `${numMap[m[1]]} ${n.es}, por favor`;
     }
 
-    // how much is (the) [NOUN]
     m = t.match(/^how\s+much\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
     if(m){
       const n = findNoun(m[2]); if(n) return `¿cuánto cuesta ${art(n.es,n.g)}?`;
     }
 
-    // turn left/right
     m = t.match(/^turn\s+(left|right)\.?$/);
     if(m){
       const dir = m[1]==='left' ? 'izquierda' : 'derecha';
       return `gire a la ${dir}`;
     }
 
-    // simple greetings variants
     m = t.match(/^good\s+(morning|afternoon|evening|night)\.?$/);
     if(m){
       return {morning:'buenos días',afternoon:'buenas tardes',evening:'buenas noches',night:'buenas noches'}[m[1]];
     }
 
-    return null; // не распознали
+    return null;
   }
 
   function templateES2EN(s){
     const t = s.trim().toLowerCase();
-    // обратные фиксированные
     for(const [k,v] of Object.entries(FIXED_EN2ES)){ if(v===t) return k; }
-    // простые вопросы
     if(/^¿dónde está /.test(t)) return 'where is it?';
     if(/^¿tiene /.test(t)) return 'do you have it?';
     if(/^gire a la /.test(t)) return 'turn (left/right)';
@@ -526,7 +523,7 @@
 
   const SMALL_DICT_EN2ES = {
     "where is the bathroom?":"¿dónde está el baño?","the bill, please":"la cuenta, por favor","water":"agua","coffee":"café",
-    "tea":"té","bread":"pan","help":"ayuda","i need help":"necesito ayuda","i would like a coffee":"me gustaría un café",
+    "tea":"té","bread":"пан","help":"ayuda","i need help":"necesito ayuda","i would like a coffee":"me gustaría un café",
     "one ticket please":"un billete, por favor"
   };
   const SMALL_DICT_ES2EN = Object.fromEntries(Object.entries(SMALL_DICT_EN2ES).map(([k,v])=>[v,k]));
@@ -552,14 +549,13 @@
       if(SMALL_DICT_EN2ES[t]) return SMALL_DICT_EN2ES[t];
       const byTpl = templateEN2ES(t);
       if(byTpl) return byTpl;
-      // fallback замены артиклей
       const rm = t.replace(/\b(the|a|an)\b/g,'').trim();
       const n = findNoun(rm); if(n) return n.es;
     } else {
       if(SMALL_DICT_ES2EN[t]) return SMALL_DICT_ES2EN[t];
       const byTpl = templateES2EN(t); if(byTpl) return byTpl;
     }
-    return t; // как есть
+    return t;
   }
 
   function setTrStatus(msg){ trStatus.innerHTML = msg? `<span>${msg}</span>` : '<span class="spinner"></span>'; }
@@ -591,7 +587,6 @@
       toEl.value = online;
       setTrStatus('Готово ✓');
     }catch(e){
-      // офлайн шаблоны (>1000 комбинаций)
       toEl.value = offlineTranslate(fromEl.value, dir);
       setTrStatus('Оффлайн перевод');
     }finally{
@@ -601,7 +596,6 @@
     }
   }
 
-  // debounce для автоперевода
   let trTimer = null;
   function scheduleAutoTranslate(){
     if(!autoTranslate.checked) return;
@@ -609,7 +603,6 @@
     trTimer = setTimeout(()=>{ doTranslateActive(); }, 600);
   }
 
-  /** Keyboard & Clicks */
   function hasInputFocus(){ const ae=document.activeElement; return ae && (['INPUT','TEXTAREA'].includes(ae.tagName) || ae.isContentEditable); }
   window.addEventListener('keydown', (e)=>{ if(hasInputFocus()) return; if(state.tab!=='flash') return;
     if(e.code==='Space'){ e.preventDefault(); flipCard(); }
@@ -640,7 +633,6 @@
   });
   btnClearAdd.addEventListener('click', ()=>{ addFront.value=''; addBack.value=''; addFront.focus(); });
 
-  /** Init */
   function init(){
     const loaded=loadState(); if(loaded) Object.assign(state, loaded);
     ensureDemo();
@@ -653,7 +645,6 @@
   }
   init();
 
-  /** Mini tests */
   function miniTests(){
     console.log('%cMini tests','background:#352b66;color:#fff;padding:2px 6px;border-radius:6px');
     const t1=parseCSV('a,b'); console.log('CSV1 rows:',t1.length,t1);
@@ -664,6 +655,17 @@
     if(state.cards[0]){ const c={...state.cards[0]}; c.box=clamp(c.box+1,1,5); c.repeat=false; const w={...state.cards[0]}; w.repeat=true; w.box=1; console.log('Quiz mutations:',{correct:c.box,correctRepeat:c.repeat,wrongBox:w.box,wrongRepeat:w.repeat}); }
   }
 })();
+</script>
+
+<!-- 🔹 Регистрация Service Worker (добавлено) -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("SW ok"))
+      .catch(err => console.error("SW error:", err));
+  });
+}
 </script>
 </body>
 </html>
