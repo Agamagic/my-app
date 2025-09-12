@@ -4,16 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Flashcards EN↔ES — One File</title>
-
-<!-- 🔹 PWA -->
-<link rel="manifest" href="/my-app/manifest.json">
-<meta name="theme-color" content="#0d0d0d">
-
-<!-- 🔹 iOS (иконка и полноэкранный режим) -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="apple-touch-icon" href="/my-app/icon-192.png">
-
 <style>
   :root{
     --bg0:#0b0a12; --bg1:#141126; --grad1:#5b3ee4; --grad2:#a25bff;
@@ -168,4 +158,512 @@
     <div class="row"><input id="addBack" placeholder="Back (ES)" autocomplete="off" /></div>
     <div class="row" style="justify-content:space-between;width:100%">
       <label style="display:flex;align-items:center;gap:8px;">
-        <input type="checkbox" id="aut
+        <input type="checkbox" id="autoTranslate" checked />
+        <span>Автоперевод</span>
+      </label>
+      <div class="meta" id="trStatus"><span class="spinner" aria-live="polite"></span></div>
+    </div>
+    <div class="actions" style="justify-content:space-between">
+      <div class="row" style="margin:0">
+        <button class="chip" type="button" id="btnSwap">⇄ Поменять поля</button>
+        <button class="chip" type="button" id="btnTranslate">Перевести</button>
+      </div>
+      <div class="row" style="margin:0">
+        <button class="chip" id="btnClearAdd" type="button">Очистить</button>
+        <button class="chip" id="btnAddConfirm" type="submit">Добавить</button>
+      </div>
+    </div>
+    <div class="footnote">Онлайн-перевод через LibreTranslate. Если сети нет — офлайн шаблоны (>1000 типовых фраз) и мини-словарь.</div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'minimal-flashcards-html-v1';
+
+  /** ---------- Helpers ---------- */
+  const $ = sel => document.querySelector(sel);
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const now = ()=>Date.now();
+  function prng(seed){ const x = Math.sin(seed)*10000; return x - Math.floor(x); }
+  function weightedPick(weights, excludeIndex=null, seed=1){
+    const n=weights.length, total=weights.reduce((a,b)=>a+b,0); if(total<=0)return -1;
+    let r=prng(seed)*total, acc=0, pick=0; for(let i=0;i<n;i++){ acc+=weights[i]; if(r<=acc){ pick=i; break; } }
+    if(excludeIndex!=null && n>1 && pick===excludeIndex){ r=prng(seed+0.1234)*total; acc=0; for(let i=0;i<n;i++){ acc+=weights[i]; if(r<=acc){ pick=i; break; } } }
+    return pick;
+  }
+  function toCSV(rows){return rows.map(r=>r.map(cell=>{const s=(cell??'').toString();const must=/[",\n\r\t]/.test(s);const esc=s.replace(/"/g,'""');return must?`"${esc}"`:esc;}).join(',')).join('\r\n')}
+  function parseCSV(text){
+    const out=[];let i=0,cur='',row=[],inQ=false;const pushCell=()=>{row.push(cur);cur='';};const pushRow=()=>{out.push(row);row=[];};
+    while(i<text.length){const ch=text[i];
+      if(inQ){ if(ch=='"'){ if(text[i+1]=='"'){cur+='"';i+=2;continue;} inQ=false;i++;continue;} cur+=ch;i++;continue; }
+      else{ if(ch=='"'){inQ=true;i++;continue;} if(ch==','||ch=='\t'){pushCell();i++;continue;}
+        if(ch=='\r'){ if(text[i+1]=='\n'){pushCell();pushRow();i+=2;continue;} pushCell();pushRow();i++;continue;}
+        if(ch=='\n'){pushCell();pushRow();i++;continue;} cur+=ch;i++;continue; }
+    }
+    pushCell(); if(row.length>1||(row.length===1&&row[0]!=='')) pushRow();
+    return out.filter(r=>r.length>0&&r.some(x=>(x??'').trim()!==''));
+  }
+  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function loadState(){ try{const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw);}catch(e){console.warn('loadState fail',e); return null;} }
+  function escapeHtml(s){ return (s??'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  /** ---------- State ---------- */
+  const state = {
+    cards: [],
+    currentId: null,
+    direction: 'EN2ES',
+    tab: 'flash',
+    shuffleSeed: 1.2345,
+    showList: true,
+    quiz: { pool:[], index:0, right:0, finished:false, lastAnswer:null }
+  };
+
+  /** ---------- DOM ---------- */
+  const elProgressFill = $('#progressFill'), elProgressText=$('#progressText'), elCounters=$('#counters');
+  const elFront=$('#frontText'), elBack=$('#backText'), elCard=$('#card'), elList=$('#list'), elListWrap=document.querySelector('.listwrap');
+  const elSearch=$('#searchInput'), elBtnDir=$('#btnDirection'), elBtnShuffle=$('#btnShuffle'), btnToggleList=$('#btnToggleList');
+  const elZoneBack=$('#zoneBack'), elZoneFlip=$('#zoneFlip'), elZoneNext=$('#zoneNext');
+  const btnLearned=$('#btnLearned'), btnRepeat=$('#btnRepeat');
+  const tabFlash=$('#tabFlash'), tabQuiz=$('#tabQuiz'), viewFlash=$('#viewFlash'), viewQuiz=$('#viewQuiz');
+  const btnSettings=$('#btnSettings'), btnAdd=$('#btnAdd'), dlgSettings=$('#dlgSettings');
+  const dlgAdd=$('#dlgAdd'), addForm=$('#addForm'), addFront=$('#addFront'), addBack=$('#addBack');
+  const btnClearAdd=$('#btnClearAdd'), btnExport=$('#btnExport'), fileImport=$('#fileImport');
+  const quizMeta=$('#quizMeta'), quizPrompt=$('#quizPrompt'), quizOpts=$('#quizOpts'), quizRestart=$('#quizRestart');
+  const autoTranslate=$('#autoTranslate'), btnTranslate=$('#btnTranslate'), btnSwap=$('#btnSwap'), trStatus=$('#trStatus');
+
+  /** ---------- App ---------- */
+  function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+  function addCard(front, back, demo=false){
+    const c={id:uid(), front:String(front).trim(), back:String(back).trim(), box:1, hard:false, repeat:false, learned:false, last:Date.now()};
+    if(demo){ state.cards.push(c); } else { state.cards.unshift(c); }
+    if(!state.currentId) state.currentId=c.id; saveState();
+  }
+  function ensureDemo(){ if(state.cards.length) return; addCard('good morning','buenos días',true); addCard('thank you','gracias',true); addCard('how much is this?','¿cuánto cuesta esto?',true); }
+
+  function computeProgress(){ const total=state.cards.length;
+    const learnedCount=state.cards.filter(c=>c.learned===true||c.box>=4).length;
+    const toRepeat=state.cards.filter(c=>c.repeat===true||c.hard===true||c.box<=2).length;
+    const pct= total? Math.round((learnedCount/total)*100) : 0;
+    return {total, learnedCount, toRepeat, pct};
+  }
+  function refreshProgressUI(){ const {total,learnedCount,toRepeat,pct}=computeProgress();
+    elProgressFill.style.width = pct+'%';
+    elProgressText.textContent = `Прогресс: ${pct}% (${learnedCount}/${total}) | Повторить: ${toRepeat}`;
+    elProgressFill.parentElement.setAttribute('aria-valuenow', pct);
+    elCounters.textContent = `Всего: ${total} • Выучено: ${learnedCount} • Повторить: ${toRepeat}`;
+  }
+  function currentCard(){ if(!state.currentId && state.cards.length) state.currentId=state.cards[0].id; return state.cards.find(c=>c.id===state.currentId)||null; }
+  function setCardTexts(c){ const dir=state.direction; const front=dir==='EN2ES'? c.front : c.back; const back=dir==='EN2ES'? c.back : c.front; elFront.textContent=front||'—'; elBack.textContent=back||'—'; }
+  function renderFlash(){ const c=currentCard(); if(!c){ elFront.textContent='Нет карточек'; elBack.textContent='Добавьте новые через ＋'; return;} setCardTexts(c); }
+
+  function renderList(){
+    const q=(elSearch.value||'').trim().toLowerCase();
+    const items=state.cards.filter(c => !q || c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q));
+    if(!items.length){ elList.innerHTML=`<div style="padding:14px;color:var(--muted)">Ничего не найдено</div>`; return; }
+    elList.innerHTML = items.map(c=>{
+      const status = c.learned? '✔ выучено' : (c.repeat||c.hard||c.box<=2)? '↺ повторить' : 'в процессе';
+      return `<details data-id="${c.id}">
+        <summary><span>${escapeHtml(c.front)} <span class="status">— ${escapeHtml(c.back)}</span></span>
+          <span class="status">${status}<span class="pill">Box ${c.box}</span></span></summary>
+        <div style="padding:0 14px 12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip" data-act="focus">Показать</button>
+          <button class="chip" data-act="markLearned">✔ Запомнил</button>
+          <button class="chip" data-act="markRepeat">↺ Повторить</button>
+          <button class="chip" data-act="boxUp">⬆ Box</button>
+          <button class="chip" data-act="boxDown">⬇ Box</button>
+          <button class="chip" data-act="delete" style="background:#3b1d3b">Удалить</button>
+        </div></details>`;
+    }).join('');
+  }
+
+  function switchTab(tab){ state.tab=tab;
+    tabFlash.classList.toggle('active',tab==='flash'); tabQuiz.classList.toggle('active',tab==='quiz');
+    tabFlash.setAttribute('aria-selected',tab==='flash'); tabQuiz.setAttribute('aria-selected',tab==='quiz');
+    viewFlash.hidden=tab!=='flash'; viewQuiz.hidden=tab!=='quiz'; saveState(); if(tab==='quiz') startQuiz();
+  }
+
+  let flipped=false;
+  function flipCard(force){ flipped = typeof force==='boolean'? force : !flipped; elCard.style.transform = flipped? 'rotateY(180deg)':'rotateY(0deg)'; }
+  function applyLearned(){ const c=currentCard(); if(!c)return; c.learned=true;c.repeat=false;c.hard=false;c.box=clamp(c.box+1,1,5);c.last=now(); nextCard(true); saveState(); refreshProgressUI(); renderList(); }
+  function applyRepeat(){ const c=currentCard(); if(!c)return; c.repeat=true;c.hard=true;c.learned=false;c.box=Math.min(c.box,2);c.last=now(); nextCard(false); saveState(); refreshProgressUI(); renderList(); }
+  function directionLabel(){ return state.direction==='EN2ES'?'EN→ES':'ES→EN'; }
+  function nextCard(){ flipCard(false); if(state.cards.length<=1) return;
+    const currentIndex=state.cards.findIndex(c=>c.id===state.currentId);
+    const weights=state.cards.map(c=>1/Math.max(1,c.box));
+    state.shuffleSeed += .517;
+    const pick=weightedPick(weights,currentIndex,state.shuffleSeed);
+    if(pick>=0){ state.currentId=state.cards[pick].id; setCardTexts(state.cards[pick]); }
+    saveState();
+  }
+  function prevCard(){ if(!state.cards.length) return; const idx=state.cards.findIndex(c=>c.id===state.currentId);
+    const prev=(idx-1+state.cards.length)%state.cards.length; state.currentId=state.cards[prev].id; flipCard(false); renderFlash(); saveState(); }
+
+  /** List toggle (single button) */
+  function applyListVisibility(){
+    elListWrap.hidden = !state.showList;
+    btnToggleList.textContent = state.showList ? 'Скрыть список' : 'Показать список';
+    btnToggleList.setAttribute('aria-expanded', String(state.showList));
+  }
+  btnToggleList.addEventListener('click', () => { state.showList = !state.showList; applyListVisibility(); saveState(); });
+
+  /** Direction & shuffle */
+  elBtnDir.addEventListener('click', ()=>{ state.direction=state.direction==='EN2ES'?'ES2EN':'EN2ES'; elBtnDir.textContent=directionLabel(); const c=currentCard(); if(c) setCardTexts(c); saveState(); });
+  elBtnShuffle.addEventListener('click', ()=>{ state.shuffleSeed += 1; saveState(); });
+
+  /** List actions */
+  elList.addEventListener('click',(e)=>{
+    const btn=e.target.closest('button.chip'); if(!btn) return;
+    const details=e.target.closest('details'); if(!details) return;
+    const id=details.getAttribute('data-id'); const card=state.cards.find(c=>c.id===id); if(!card) return;
+    const act=btn.getAttribute('data-act');
+    if(act==='focus'){ state.currentId=id; renderFlash(); details.open=false; }
+    if(act==='markLearned'){ card.learned=true; card.repeat=false; card.hard=false; card.box=clamp(card.box+1,1,5); }
+    if(act==='markRepeat'){ card.repeat=true; card.hard=true; card.learned=false; card.box=Math.min(card.box,2); }
+    if(act==='boxUp'){ card.box=clamp(card.box+1,1,5); }
+    if(act==='boxDown'){ card.box=clamp(card.box-1,1,5); }
+    if(act==='delete'){ const i=state.cards.findIndex(c=>c.id===id); if(i>=0) state.cards.splice(i,1); if(state.currentId===id) state.currentId=state.cards[0]?.id??null; }
+    saveState(); refreshProgressUI(); renderList(); renderFlash();
+  });
+
+  /** Quiz */
+  function buildQuizPool(){ return state.cards.filter(c=>c.repeat===true||c.hard===true||c.box<=2); }
+  function startQuiz(){ state.quiz.pool=buildQuizPool(); state.quiz.index=0; state.quiz.right=0; state.quiz.finished=false; quizRestart.hidden=true;
+    if(state.quiz.pool.length===0){ quizMeta.textContent='Нет карточек для квиза — отметьте «Повторить» или с низким Box.'; quizPrompt.textContent='Пул пуст.'; quizOpts.innerHTML=''; return; }
+    nextQuizQ();
+  }
+  function choiceSet(correct, allCards, seed){
+    const pool=allCards.filter(c=>c.id!==correct.id); const opts=[]; let s=seed;
+    while(opts.length<3 && pool.length){ s+=.73; const i=Math.floor(prng(s)*pool.length); const [pick]=pool.splice(i,1); opts.push(pick); }
+    const prompt= state.direction==='EN2ES'? correct.front : correct.back;
+    const correctAns= state.direction==='EN2ES'? correct.back : correct.front;
+    const answers=[correctAns, ...opts.map(c=> state.direction==='EN2ES'? c.back : c.front )];
+    const arr=answers.map((v,i)=>({v,i})); for(let i=arr.length-1;i>0;i--){ s+=.41; const j=Math.floor(prng(s)*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+    return { prompt, options: arr.map(x=>x.v), correctIndex: arr.findIndex(x=>x.i===0) };
+  }
+  function nextQuizQ(){
+    const q=state.quiz, total=q.pool.length;
+    if(q.index>=total){ q.finished=true; quizMeta.textContent=`Готово! правильных ${q.right} из ${total}`; quizPrompt.textContent='Квиз завершён'; quizOpts.innerHTML=''; quizRestart.hidden=false; return; }
+    const card=q.pool[q.index]; const {prompt,options,correctIndex}=choiceSet(card,state.cards,state.shuffleSeed+q.index);
+    quizPrompt.textContent=prompt; quizOpts.innerHTML='';
+    options.forEach((opt,i)=>{ const b=document.createElement('button'); b.textContent=opt;
+      b.addEventListener('click', ()=>{
+        const children=Array.from(quizOpts.children); children.forEach((x,idx)=>x.classList.toggle('correct', idx===correctIndex));
+        if(i===correctIndex){ q.right++; card.box=clamp(card.box+1,1,5); card.repeat=false; card.last=now(); }
+        else{ card.repeat=true; card.box=1; card.learned=false; card.hard=true; children[i].classList.add('wrong'); }
+        saveState(); refreshProgressUI(); renderList(); children.forEach(x=>x.disabled=true); setTimeout(()=>{ q.index++; nextQuizQ(); }, 550);
+      }, {once:true});
+      quizOpts.appendChild(b);
+    });
+    quizRestart.hidden=true; quizMeta.textContent=`вопрос ${q.index+1} из ${total}, правильных ${q.right}`;
+  }
+  quizRestart.addEventListener('click', startQuiz);
+
+  /** Export/Import */
+  btnExport.addEventListener('click', ()=>{
+    const rows=[['front','back','box','learned','repeat','hard','last','id']];
+    state.cards.forEach(c=>rows.push([c.front,c.back,c.box,c.learned,c.repeat,c.hard,c.last,c.id]));
+    const csv=toCSV(rows); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='flashcards.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+  fileImport.addEventListener('change', async (e)=>{
+    const file=e.target.files?.[0]; if(!file) return;
+    try{
+      const text=await file.text(); const name=(file.name||'').toLowerCase();
+      if(name.endsWith('.json') || text.trim().startsWith('[')){
+        const arr=JSON.parse(text); const added=[];
+        if(!Array.isArray(arr)) throw new Error('JSON должен быть массивом объектов или пар ([front,back]).');
+        for(const it of arr){
+          if(Array.isArray(it)&&it.length>=2){ addCard(String(it[0]),String(it[1])); added.push(it); continue; }
+          if(typeof it==='object' && it){ const f=it.front??it.en??it.EN??it[0]; const b=it.back??it.es??it.ES??it[1]; if(f!=null&&b!=null){ addCard(String(f),String(b)); added.push(it); } }
+        }
+        if(!added.length) throw new Error('Не удалось найти пары front/back в JSON.');
+      } else {
+        const rows=parseCSV(text); let added=0;
+        for(const r of rows){ const [f,b]=r; if((f??'').trim()&&(b??'').trim()){ addCard(String(f),String(b)); added++; } }
+        if(!added) throw new Error('CSV должен содержать строки вида "front","back".');
+      }
+      saveState(); refreshProgressUI(); renderList(); renderFlash(); alert('Импорт успешно завершён.');
+    } catch(err){ alert('Ошибка импорта: '+err.message+'\n\nПодсказка: CSV — "front","back"; JSON — массив объектов с полями front/back или en/es.'); }
+    finally{ e.target.value=''; }
+  });
+
+  /** ---------- Autotranslate (online + offline >1000) ---------- */
+  const LT_ENDPOINTS = [
+    'https://libretranslate.de/translate',
+    'https://translate.terraprint.co/translate',
+    'https://libretranslate.com/translate'
+  ];
+
+  // Базовая лексика (EN→ES) + гендер (m/f) для артикля
+  const NOUNS = {
+    "airport":{es:"aeropuerto",g:"m"},"station":{es:"estación",g:"f"},"bus":{es:"autobús",g:"m"},"train":{es:"tren",g:"m"},
+    "taxi":{es:"taxi",g:"m"},"subway":{es:"metro",g:"m"},"ticket":{es:"billete",g:"m"},"toilet":{es:"baño",g:"m"},
+    "bathroom":{es:"baño",g:"m"},"pharmacy":{es:"farmacia",g:"f"},"hospital":{es:"hospital",g:"m"},"doctor":{es:"médico",g:"m"},
+    "police":{es:"policía",g:"f"},"hotel":{es:"hotel",g:"m"},"room":{es:"habitación",g:"f"},"key":{es:"llave",g:"f"},
+    "reception":{es:"recepción",g:"f"},"restaurant":{es:"restaurante",g:"m"},"menu":{es:"menú",g:"m"},"breakfast":{es:"desayuno",g:"m"},
+    "lunch":{es:"almuerzo",g:"m"},"dinner":{es:"cena",g:"f"},"water":{es:"agua",g:"f"},"coffee":{es:"café",g:"m"},
+    "tea":{es:"té",g:"m"},"beer":{es:"cerveza",g:"f"},"wine":{es:"vino",g:"m"},"bread":{es:"pan",g:"m"},
+    "bottle":{es:"botella",g:"f"},"glass":{es:"vaso",g:"m"},"plate":{es:"plato",g:"m"},"fork":{es:"tenedor",g:"m"},
+    "knife":{es:"cuchillo",g:"m"},"spoon":{es:"cuchara",g:"f"},"napkin":{es:"servilleta",g:"f"},"salt":{es:"sal",g:"f"},
+    "sugar":{es:"azúcar",g:"m"},"pepper":{es:"pimienta",g:"f"},"oil":{es:"aceite",g:"m"},"bill":{es:"cuenta",g:"f"},
+    "receipt":{es:"recibo",g:"m"},"discount":{es:"descuento",g:"m"},"market":{es:"mercado",g:"m"},"supermarket":{es:"supermercado",g:"m"},
+    "store":{es:"tienda",g:"f"},"shop":{es:"tienda",g:"f"},"cash":{es:"efectivo",g:"m"},"card":{es:"tarjeta",g:"f"},
+    "bank":{es:"banco",g:"m"},"atm":{es:"cajero",g:"m"},"map":{es:"mapa",g:"m"},"street":{es:"calle",g:"f"},
+    "center":{es:"centro",g:"m"},"beach":{es:"playa",g:"f"},"park":{es:"parque",g:"m"},"museum":{es:"museo",g:"m"},
+    "ticket office":{es:"taquilla",g:"f"},"platform":{es:"andén",g:"m"},"gate":{es:"puerta",g:"f"},"passport":{es:"pasaporte",g:"m"},
+    "phone":{es:"teléfono",g:"m"},"charger":{es:"cargador",g:"m"},"adapter":{es:"adaptador",g:"m"},"wifi":{es:"wifi",g:"m"},
+    "password":{es:"contraseña",g:"f"},"reservation":{es:"reserva",g:"f"},"table":{es:"mesa",g:"f"},"chair":{es:"silla",g:"f"},
+    "left":{es:"izquierda",g:"f"},"right":{es:"derecha",g:"f"},"airport bus":{es:"autobús del aeropuerto",g:"m"},
+    "entrance":{es:"entrada",g:"f"},"exit":{es:"salida",g:"f"},"pharmacy on duty":{es:"farmacia de guardia",g:"f"}
+  };
+
+  const FIXED_EN2ES = {
+    "hello":"hola","hi":"hola","good morning":"buenos días","good afternoon":"buenas tardes","good evening":"buenas noches",
+    "good night":"buenas noches","please":"por favor","thank you":"gracias","thanks":"gracias","you are welcome":"de nada",
+    "sorry":"lo siento","excuse me":"disculpe","yes":"sí","no":"no","help":"ayuda","i don’t understand":"no entiendo",
+    "i don't understand":"no entiendo","do you speak english?":"¿habla inglés?","i speak a little spanish":"hablo un poco de español",
+    "how much is this?":"¿cuánto cuesta esto?","where is the bathroom?":"¿dónde está el baño?","the bill, please":"la cuenta, por favor",
+    "one ticket, please":"un billete, por favor","water, please":"agua, por favor","i would like":"me gustaría","i need help":"necesito ayuda"
+  };
+
+  // Простые числа (0-100) для фраз "… euros"
+  const NUM = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
+  function enNumberToEs(s){
+    const m = s.match(/^(\d{1,3})(\s+)?(euros|euro)?$/);
+    if(!m) return null;
+    const n = +m[1]; const tail = m[3] ? ' euros' : '';
+    const specials = {0:'cero',1:'uno',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho',9:'nueve',10:'diez',11:'once',12:'doce',13:'trece',14:'catorce',15:'quince',20:'veinte',30:'treinta',40:'cuarenta',50:'cincuenta',60:'sesenta',70:'setenta',80:'ochenta',90:'noventa',100:'cien'};
+    if(specials[n]) return specials[n] + (tail? ' euros':'');
+    if(n<20) return specials[n]+(tail?' euros':'');
+    if(n<100){ const tens=Math.floor(n/10)*10; const ones=n%10; return specials[tens] + (ones? ' y '+specials[ones]:'') + (tail?' euros':''); }
+    if(n===100) return 'cien' + (tail?' euros':'');
+    return null;
+  }
+
+  function art(word, g){ // артикль с учётом начального ударного a- (agua → el agua)
+    if(g==='m') return 'el ' + word;
+    // femeninos con a- tónica usan "el" в ед. числе (agua, águila…)
+    if(g==='f' && /^[aá]gua|^[aá]guila|^[aá]rpa|^[aá]rea/.test(word)) return 'el ' + word;
+    return 'la ' + word;
+  }
+
+  function findNoun(en){
+    const k = en.toLowerCase().trim();
+    if(NOUNS[k]) return NOUNS[k];
+    // попытка без артикля
+    const noArticle = k.replace(/^(the|a|an)\s+/,'').trim();
+    return NOUNS[noArticle] || null;
+  }
+
+  function templateEN2ES(s){
+    let t = s.trim().toLowerCase().replace(/\s+/g,' ');
+    if(FIXED_EN2ES[t]) return FIXED_EN2ES[t];
+
+    // Числа / цены
+    const num = enNumberToEs(t);
+    if(num) return num;
+
+    // where is the [NOUN]
+    let m = t.match(/^where\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
+    if(m){
+      const n = findNoun(m[2]); if(n) return `¿dónde está ${art(n.es,n.g)}?`;
+    }
+
+    // do you have [NOUN]
+    m = t.match(/^do\s+you\s+have\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
+    if(m){
+      const n = findNoun(m[2]); if(n) return `¿tiene ${art(n.es,n.g)}?`;
+    }
+
+    // i need / i want / i would like [NOUN]
+    m = t.match(/^i\s+(need|want|would like)\s+(the\s+|a\s+|an\s+)?(.+)\.?$/);
+    if(m){
+      const verb = m[1]==='need' ? 'necesito' : (m[1]==='want' ? 'quiero' : 'me gustaría');
+      const n = findNoun(m[3]);
+      if(n) return `${verb} ${art(n.es,n.g)}`;
+    }
+
+    // one/two ... [NOUN] please
+    m = t.match(/^(one|two|three|four|five)\s+(.+)\s+please\.?$/);
+    if(m){
+      const numMap = {one:'un',two:'dos',three:'tres',four:'cuatro',five:'cinco'};
+      const n = findNoun(m[2]); if(n) return `${numMap[m[1]]} ${n.es}, por favor`;
+    }
+
+    // how much is (the) [NOUN]
+    m = t.match(/^how\s+much\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
+    if(m){
+      const n = findNoun(m[2]); if(n) return `¿cuánto cuesta ${art(n.es,n.g)}?`;
+    }
+
+    // turn left/right
+    m = t.match(/^turn\s+(left|right)\.?$/);
+    if(m){
+      const dir = m[1]==='left' ? 'izquierda' : 'derecha';
+      return `gire a la ${dir}`;
+    }
+
+    // simple greetings variants
+    m = t.match(/^good\s+(morning|afternoon|evening|night)\.?$/);
+    if(m){
+      return {morning:'buenos días',afternoon:'buenas tardes',evening:'buenas noches',night:'buenas noches'}[m[1]];
+    }
+
+    return null; // не распознали
+  }
+
+  function templateES2EN(s){
+    const t = s.trim().toLowerCase();
+    // обратные фиксированные
+    for(const [k,v] of Object.entries(FIXED_EN2ES)){ if(v===t) return k; }
+    // простые вопросы
+    if(/^¿dónde está /.test(t)) return 'where is it?';
+    if(/^¿tiene /.test(t)) return 'do you have it?';
+    if(/^gire a la /.test(t)) return 'turn (left/right)';
+    return null;
+  }
+
+  const SMALL_DICT_EN2ES = {
+    "where is the bathroom?":"¿dónde está el baño?","the bill, please":"la cuenta, por favor","water":"agua","coffee":"café",
+    "tea":"té","bread":"pan","help":"ayuda","i need help":"necesito ayuda","i would like a coffee":"me gustaría un café",
+    "one ticket please":"un billete, por favor"
+  };
+  const SMALL_DICT_ES2EN = Object.fromEntries(Object.entries(SMALL_DICT_EN2ES).map(([k,v])=>[v,k]));
+
+  async function translateOnline(q, dir, signal){
+    const payload = { q, source: dir==='EN2ES'?'en':'es', target: dir==='EN2ES'?'es':'en', format:'text' };
+    for(const url of LT_ENDPOINTS){
+      try{
+        const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), signal });
+        if(!res.ok) continue;
+        const data = await res.json();
+        const txt = data?.translatedText || '';
+        if(txt) return txt;
+      }catch(e){ /* try next */ }
+    }
+    throw new Error('online_fail');
+  }
+
+  function offlineTranslate(text, dir){
+    const t = (text||'').trim().toLowerCase();
+    if(!t) return '';
+    if(dir==='EN2ES'){
+      if(SMALL_DICT_EN2ES[t]) return SMALL_DICT_EN2ES[t];
+      const byTpl = templateEN2ES(t);
+      if(byTpl) return byTpl;
+      // fallback замены артиклей
+      const rm = t.replace(/\b(the|a|an)\b/g,'').trim();
+      const n = findNoun(rm); if(n) return n.es;
+    } else {
+      if(SMALL_DICT_ES2EN[t]) return SMALL_DICT_ES2EN[t];
+      const byTpl = templateES2EN(t); if(byTpl) return byTpl;
+    }
+    return t; // как есть
+  }
+
+  function setTrStatus(msg){ trStatus.innerHTML = msg? `<span>${msg}</span>` : '<span class="spinner"></span>'; }
+  let trAbort = null;
+  function withTimeout(ms){
+    const c = new AbortController();
+    const t = setTimeout(()=>c.abort(), ms);
+    c.cleanup = ()=> clearTimeout(t);
+    return c;
+  }
+
+  async function doTranslateActive(){
+    const front = addFront.value.trim();
+    const back  = addBack.value.trim();
+    let fromEl, toEl, dir;
+
+    if(front && !back){ dir='EN2ES'; fromEl=addFront; toEl=addBack; }
+    else if(back && !front){ dir='ES2EN'; fromEl=addBack; toEl=addFront; }
+    else return;
+
+    setTrStatus('Перевод…');
+    btnTranslate.disabled = true;
+
+    if(trAbort){ try{ trAbort.abort(); }catch{} }
+    trAbort = withTimeout(5000);
+
+    try{
+      const online = await translateOnline(fromEl.value, dir, trAbort.signal);
+      toEl.value = online;
+      setTrStatus('Готово ✓');
+    }catch(e){
+      // офлайн шаблоны (>1000 комбинаций)
+      toEl.value = offlineTranslate(fromEl.value, dir);
+      setTrStatus('Оффлайн перевод');
+    }finally{
+      btnTranslate.disabled = false;
+      if(trAbort?.cleanup) trAbort.cleanup();
+      trAbort = null;
+    }
+  }
+
+  // debounce для автоперевода
+  let trTimer = null;
+  function scheduleAutoTranslate(){
+    if(!autoTranslate.checked) return;
+    if(trTimer) clearTimeout(trTimer);
+    trTimer = setTimeout(()=>{ doTranslateActive(); }, 600);
+  }
+
+  /** Keyboard & Clicks */
+  function hasInputFocus(){ const ae=document.activeElement; return ae && (['INPUT','TEXTAREA'].includes(ae.tagName) || ae.isContentEditable); }
+  window.addEventListener('keydown', (e)=>{ if(hasInputFocus()) return; if(state.tab!=='flash') return;
+    if(e.code==='Space'){ e.preventDefault(); flipCard(); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); applyLearned(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); applyRepeat(); }
+    else if((e.key||'').toLowerCase()==='n'){ e.preventDefault(); nextCard(); }
+  });
+
+  $('#zoneFlip').addEventListener('click', ()=>flipCard());
+  $('#zoneNext').addEventListener('click', ()=>nextCard());
+  $('#zoneBack').addEventListener('click', ()=>prevCard());
+  btnLearned.addEventListener('click', applyLearned);
+  btnRepeat.addEventListener('click', applyRepeat);
+  tabFlash.addEventListener('click', ()=>switchTab('flash'));
+  tabQuiz .addEventListener('click', ()=>switchTab('quiz'));
+  btnSettings.addEventListener('click', ()=>dlgSettings.showModal());
+  btnAdd.addEventListener('click', ()=>{ dlgAdd.showModal(); setTimeout(()=> addFront.focus(),50); });
+  addFront.addEventListener('input', scheduleAutoTranslate);
+  addBack .addEventListener('input', scheduleAutoTranslate);
+  btnTranslate.addEventListener('click', doTranslateActive);
+  btnSwap.addEventListener('click', ()=>{ const f=addFront.value; addFront.value=addBack.value; addBack.value=f; });
+
+  addForm.addEventListener('submit', (ev)=>{
+    ev.preventDefault();
+    const f=addFront.value.trim(), b=addBack.value.trim(); if(!f||!b) return;
+    addCard(f,b); addFront.value=''; addBack.value='';
+    refreshProgressUI(); renderList(); renderFlash(); dlgAdd.close();
+  });
+  btnClearAdd.addEventListener('click', ()=>{ addFront.value=''; addBack.value=''; addFront.focus(); });
+
+  /** Init */
+  function init(){
+    const loaded=loadState(); if(loaded) Object.assign(state, loaded);
+    ensureDemo();
+    elBtnDir.textContent=directionLabel();
+    renderFlash(); renderList(); refreshProgressUI();
+    applyListVisibility();
+    switchTab(state.tab||'flash');
+    flipCard(false);
+    miniTests();
+  }
+  init();
+
+  /** Mini tests */
+  function miniTests(){
+    console.log('%cMini tests','background:#352b66;color:#fff;padding:2px 6px;border-radius:6px');
+    const t1=parseCSV('a,b'); console.log('CSV1 rows:',t1.length,t1);
+    const t2=parseCSV('"c,d",e'); console.log('CSV2 first cell:',t2[0][0]);
+    const t3=parseCSV('x\ty'); console.log('CSV3 split:',t3[0]);
+    const seedBefore=state.shuffleSeed; const weights=state.cards.map(c=>1/Math.max(1,c.box)); const pick1=weightedPick(weights,null,seedBefore); const seedAfter=state.shuffleSeed; console.log('Seed immutable:', seedBefore===seedAfter, {pick1,seedBefore,seedAfter});
+    const tmp=[{box:5,learned:false},{box:1,learned:true},{box:3}]; const learnedCount=tmp.filter(c=>c.learned||c.box>=4).length; console.log('Progress test (2):', learnedCount);
+    if(state.cards[0]){ const c={...state.cards[0]}; c.box=clamp(c.box+1,1,5); c.repeat=false; const w={...state.cards[0]}; w.repeat=true; w.box=1; console.log('Quiz mutations:',{correct:c.box,correctRepeat:c.repeat,wrongBox:w.box,wrongRepeat:w.repeat}); }
+  }
+})();
+</script>
+</body>
+</html>
