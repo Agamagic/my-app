@@ -5,17 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Flashcards EN↔ES — One File</title>
 
-<!-- 🔹 PWA блок -->
+<!-- 🔹 PWA -->
 <link rel="manifest" href="/my-app/manifest.json">
 <meta name="theme-color" content="#0d0d0d">
 
-<!-- Для iPhone -->
+<!-- 🔹 iOS (иконка и полноэкранный режим) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="apple-touch-icon" href="/my-app/icon-192.png">
 
 <style>
-  /* 👇 твой оригинальный CSS */
   :root{
     --bg0:#0b0a12; --bg1:#141126; --grad1:#5b3ee4; --grad2:#a25bff;
     --text:#f6f5ff; --muted:#c6c2df; --green:#25a46a; --blue:#2b74ff; --red:#ff4d6d;
@@ -30,31 +29,143 @@
                linear-gradient(180deg, var(--bg1), var(--bg0));
     font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
   }
-  /* … остальной твой CSS без изменений … */
+  .wrap{max-width:460px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 20px)}
+  header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg, rgba(20,17,38,.9), rgba(20,17,38,.6), transparent);backdrop-filter:saturate(1.1) blur(6px);margin:0 -16px 10px;padding:10px 16px 6px}
+  .bar{height:8px;background:#2a2446;border-radius:999px;overflow:hidden;box-shadow:var(--shadow-soft);margin-bottom:10px}
+  .bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--grad1),var(--grad2));transition:width .3s var(--ease)}
+  .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+  .tabs{display:grid;grid-template-columns:auto 1fr auto;align-items:center;margin-top:10px;gap:8px}
+  .iconbtn{appearance:none;border:none;background:#251f44;color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow-soft);cursor:pointer;transition:transform .15s var(--ease), opacity .15s var(--ease)}
+  .iconbtn:active{transform:scale(.95)}
+  .tabbar{display:flex;background:#1f1a3a;border-radius:12px;padding:4px;gap:4px;box-shadow:var(--shadow-soft)}
+  .tabbar button{flex:1;appearance:none;border:none;background:transparent;color:var(--muted);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600;transition:background .2s var(--ease), color .2s var(--ease)}
+  .tabbar button.active{background:linear-gradient(180deg,#2a2452,#221d44);color:var(--text);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+  .cardwrap{margin-top:14px}
+  .card3d{position:relative;height:min(64vh,360px);aspect-ratio:3/4;margin:0 auto;border-radius:var(--radius);perspective:1200px;overflow:visible}
+  .card{position:absolute;inset:0;border-radius:var(--radius);transform-style:preserve-3d;transition:transform .6s var(--ease)}
+  .face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,4.8vw,26px);padding:18px;text-align:center;border-radius:var(--radius);background:linear-gradient(180deg,#2a2452,#211c40);box-shadow:var(--shadow);backface-visibility:hidden}
+  .back{transform:rotateY(180deg)}
+  .zones{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr;border-radius:var(--radius);overflow:hidden}
+  .zones button{appearance:none;background:transparent;border:none}
+  .zones button:active{background:rgba(255,255,255,.06)}
+  .controls{display:flex;gap:10px;margin-top:14px}
+  .btn{flex:1;appearance:none;border:none;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .12s var(--ease), filter .2s var(--ease), opacity .2s var(--ease);box-shadow:var(--shadow-soft)}
+  .btn:active{transform:scale(.95)}
+  .btn.green{background:linear-gradient(180deg,#1e9a66,#148c5c)}
+  .btn.blue{background:linear-gradient(180deg,#3b7bff,#2d68e8)}
+  .row{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .chip{appearance:none;border:none;background:#251f44;color:var(--text);padding:10px 12px;border-radius:999px;cursor:pointer;box-shadow:var(--shadow-soft);font-size:14px}
+  .chip:active{transform:scale(.95)}
+  .search{flex:1;display:flex;background:#201a3e;border-radius:12px;box-shadow:var(--shadow-soft);padding:8px 10px;gap:8px}
+  .search input{flex:1;appearance:none;background:transparent;border:none;color:var(--text);outline:none;font-size:14px}
+  .listwrap{margin-top:8px}
+  .list{background:#1a1534;border-radius:12px;overflow:hidden;box-shadow:var(--shadow-soft)}
+  details{border-top:1px solid rgba(255,255,255,.06)} details:first-child{border-top:none}
+  summary{list-style:none;padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  .status{font-size:12px;color:var(--muted)} .pill{padding:4px 8px;border-radius:999px;background:#2a2446;margin-left:8px;font-size:12px}
+  .quiz{margin-top:12px;background:#1a1534;border-radius:14px;padding:16px;box-shadow:var(--shadow-soft)}
+  .quiz h3{margin:0 0 8px}
+  .opts{display:grid;gap:10px;margin-top:10px}
+  .opts button{text-align:left;appearance:none;border:none;border-radius:12px;padding:12px 14px;background:#231d43;color:var(--text);cursor:pointer;transition:transform .12s var(--ease), background .15s var(--ease)}
+  .opts button:active{transform:scale(.97)}
+  .opts button.correct{background:rgba(37,164,106,.25);outline:1px solid rgba(37,164,106,.7)}
+  .opts button.wrong{background:rgba(255,77,109,.18);outline:1px solid rgba(255,77,109,.7)}
+  dialog{border:none;border-radius:16px;background:#191532;color:var(--text);padding:0;box-shadow:0 20px 80px rgba(0,0,0,.6)}
+  dialog::backdrop{background:rgba(0,0,0,.45);backdrop-filter:blur(3px)}
+  .modal{padding:16px;min-width:min(92vw,420px)}
+  .modal h3{margin:0 0 10px}
+  .modal .row{margin-top:10px}
+  .modal input{width:100%;appearance:none;border:none;border-radius:12px;padding:10px 12px;background:#231e46;color:var(--text);outline:none}
+  .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .footnote{margin-top:10px;color:var(--muted);font-size:12px}
+  .linklike{color:#9ea0ff;text-decoration:underline;cursor:pointer}
+  :focus-visible{outline:2px solid #8c7aff;outline-offset:2px;border-radius:10px}
+  .spinner{display:inline-block;min-width:1.2em}
 </style>
 </head>
 <body>
 <div class="wrap" id="app" aria-live="polite">
-  <!-- 👇 всё твоё содержимое приложения без изменений -->
-  …  
+  <header>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Прогресс обучения"><span id="progressFill"></span></div>
+    <div class="meta" id="progressText">Прогресс: 0% (0/0) | Повторить: 0</div>
+    <div class="tabs" role="tablist" aria-label="Навигация вкладок">
+      <button class="iconbtn" id="btnSettings" title="Настройки (экспорт/импорт)" aria-label="Настройки">⚙️</button>
+      <div class="tabbar">
+        <button role="tab" aria-selected="true" id="tabFlash" class="active">Flashcards</button>
+        <button role="tab" aria-selected="false" id="tabQuiz">Квиз</button>
+      </div>
+      <button class="iconbtn" id="btnAdd" title="Добавить карточку" aria-label="Добавить">＋</button>
+    </div>
+  </header>
+
+  <!-- FLASHCARDS -->
+  <section id="viewFlash">
+    <div class="cardwrap">
+      <div class="card3d" aria-label="Карточка">
+        <div class="card" id="card">
+          <div class="face front" id="frontText">Front</div>
+          <div class="face back" id="backText">Back</div>
+        </div>
+        <div class="zones" aria-hidden="true">
+          <button id="zoneBack" title="Назад" aria-label="Назад"></button>
+          <button id="zoneFlip" title="Перевернуть" aria-label="Перевернуть"></button>
+          <button id="zoneNext" title="Далее" aria-label="Далее"></button>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn blue" id="btnRepeat">↺ Повторить</button>
+        <button class="btn green" id="btnLearned">✔ Запомнил</button>
+      </div>
+    </div>
+
+    <div class="row"><div id="counters" class="meta">Всего: 0 • Выучено: 0 • Повторить: 0</div></div>
+
+    <div class="row">
+      <div class="search" aria-label="Поиск">
+        <input id="searchInput" type="search" placeholder="Поиск по карточкам…" enterkeyhint="search" />
+      </div>
+      <button class="chip" id="btnDirection">EN→ES</button>
+      <button class="chip" id="btnShuffle">Перемешать</button>
+      <button class="chip" id="btnToggleList" aria-controls="list" aria-expanded="true">Скрыть список</button>
+    </div>
+
+    <div class="listwrap">
+      <div class="list" id="list"></div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="viewQuiz" hidden>
+    <div class="quiz" role="group" aria-label="Квиз">
+      <div class="meta" id="quizMeta">вопрос 0 из 0, правильных 0</div>
+      <h3 id="quizPrompt">…</h3>
+      <div class="opts" id="quizOpts"></div>
+      <div class="row"><button class="chip" id="quizRestart" hidden>Снова</button></div>
+    </div>
+  </section>
 </div>
 
-<!-- 👇 твой основной скрипт (без изменений) -->
-<script>
-  (()=>{
-    // … твой большой JS-код …
-  })();
-</script>
+<!-- SETTINGS MODAL -->
+<dialog id="dlgSettings" aria-label="Настройки">
+  <form method="dialog" class="modal">
+    <h3>Настройки</h3>
+    <div class="row">
+      <button type="button" class="chip" id="btnExport">Экспорт CSV</button>
+      <label class="chip" for="fileImport" style="cursor:pointer">Импорт (CSV/JSON)</label>
+      <input id="fileImport" type="file" accept=".csv,.json,text/csv,application/json" hidden />
+    </div>
+    <div class="footnote">Импорт добавит карточки в начало. При ошибке форматирования появится подсказка.</div>
+    <div class="actions"><button class="chip" value="cancel">Закрыть</button></div>
+  </form>
+</dialog>
 
-<!-- 🔹 Регистрация Service Worker -->
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/my-app/sw.js")
-      .then(() => console.log("Service Worker зарегистрирован"))
-      .catch(err => console.error("Ошибка Service Worker:", err));
-  });
-}
-</script>
-</body>
-</html>
+<!-- ADD MODAL -->
+<dialog id="dlgAdd" aria-label="Добавить карточку">
+  <form method="dialog" class="modal" id="addForm">
+    <h3>Новая карточка</h3>
+    <div class="row"><input id="addFront" placeholder="Front (EN)" autocomplete="off" /></div>
+    <div class="row"><input id="addBack" placeholder="Back (ES)" autocomplete="off" /></div>
+    <div class="row" style="justify-content:space-between;width:100%">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="aut
