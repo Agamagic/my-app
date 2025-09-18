@@ -216,6 +216,21 @@ body{
   display: flex;
   flex-direction: column;
 }
+/* 1) Контент тянем на реальную высоту экрана, а не 100vh */
+.app-root{ min-height: 100dvh; }
+
+/* 2) Фон страницы (на всякий случай — на обоих корневых элементах) */
+html, body{ background: var(--bg1, #0b0a12); }
+
+/* 3) Докрашиваем зону под home-indicator (safe-area bottom) */
+body::after{
+  content:"";
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: env(safe-area-inset-bottom);
+  background: inherit;      /* продолжение фона body (градиент/цвет) */
+  pointer-events: none;     /* не мешает кликам */
+}
 
 </style>
 </head>
