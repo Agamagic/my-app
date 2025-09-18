@@ -1,23 +1,25 @@
-const CACHE = "app-cache-v1";
+const CACHE = 'flashcards-v1';
 const ASSETS = [
-  "/my-app/",
-  "/my-app/index.html",
-  "/my-app/icon-192.png",
-  "/my-app/icon-512.png"
+  './',            // корень
+  './index.html',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png'
+  // если есть внешние файлы css/js/шрифты — добавь их сюда
 ];
 
-self.addEventListener("install", e => {
+self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
 });
 
-self.addEventListener("activate", e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
 });
 
-self.addEventListener("fetch", e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
 });
