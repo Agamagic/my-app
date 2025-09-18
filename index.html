@@ -246,7 +246,7 @@ body::after{
     <div class="tabbar">
       <button role="tab" aria-selected="true" id="tabFlash" class="tab active">Flashcards</button>
       <button class="dirbtn" id="btnDirection" type="button" title="Сменить направление">EN→ES</button>
-      <button role="tab" aria-selected="false" id="tabQuiz" class="tab">Квиз</button>
+      <button role="tab" aria-selected="false" id="tabQuiz" class="tab">Quiz</button>
     </div>
 
     <button class="iconbtn" id="btnAdd" title="Добавить карточку" aria-label="Добавить">＋</button>
@@ -282,7 +282,7 @@ body::after{
 
   <!-- QUIZ -->
   <section id="viewQuiz" hidden>
-    <div class="quiz" role="group" aria-label="Квиз">
+    <div class="quiz" role="group" aria-label="Quiz">
       <div class="meta" id="quizMeta">вопрос 0 из 0, правильных 0</div>
       <h3 id="quizPrompt">…</h3>
       <div class="opts" id="quizOpts"></div>
@@ -731,7 +731,7 @@ function prevCard(){
   const c = currentCard(); 
   if (c) setCardTexts(c);
 
-  // 🔁 Если сейчас открыт квиз — перерисуем текущий вопрос под новое направление
+  // 🔁 Если сейчас открыт Quiz — перерисуем текущий вопрос под новое направление
   if (state.tab === 'quiz') {
     repaintQuizCurrent();   // <-- новая функция ниже
   }
@@ -846,7 +846,7 @@ function buildPalettes(){
   quizRestart.hidden = true;
 
   if (state.quiz.pool.length === 0){
-    quizMeta.textContent = 'Нет карточек для квиза — отметьте «Повторить» или с низким Box.';
+    quizMeta.textContent = 'Нет карточек для Quiz — отметьте «Повторить» или с низким Box.';
     quizPrompt.textContent = 'Пул пуст.';
     quizOpts.innerHTML = '';
     return;
@@ -917,7 +917,7 @@ function repaintQuizCurrent(){
   }
   function nextQuizQ(){
     const q=state.quiz, total=q.pool.length;
-    if(q.index>=total){ q.finished=true; quizMeta.textContent=`Готово! правильных ${q.right} из ${total}`; quizPrompt.textContent='Квиз завершён'; quizOpts.innerHTML=''; quizRestart.hidden=false; return; }
+    if(q.index>=total){ q.finished=true; quizMeta.textContent=`Готово! правильных ${q.right} из ${total}`; quizPrompt.textContent='Quiz завершён'; quizOpts.innerHTML=''; quizRestart.hidden=false; return; }
     const card=q.pool[q.index]; const {prompt,options,correctIndex}=choiceSet(card,state.cards,state.shuffleSeed+q.index);
     quizPrompt.textContent=prompt; quizOpts.innerHTML='';
     options.forEach((opt,i)=>{ const b=document.createElement('button'); b.textContent=opt;
