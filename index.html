@@ -27,7 +27,7 @@
     --radius:18px; --ease:cubic-bezier(.22,.61,.36,1); --shadow-soft: 0 8px 20px rgba(90,64,200,.25);
     --nav-h:72px;
   }
-
+:root { color-scheme: dark; } /* можно рядом с :root переменными */
   /* Корень + фон */
   html, body { height:100%; overscroll-behavior:none; }
   html { background: linear-gradient(180deg, var(--bg1), var(--bg0)); }
@@ -50,12 +50,12 @@
 
   /* Подложка под home-indicator тем же градиентом */
   body::after{
-    content:"";
-    position:fixed; left:0; right:0; bottom:0;
-    height: env(safe-area-inset-bottom);
-    background: linear-gradient(180deg, var(--bg1), var(--bg0));
-    pointer-events:none;
-  }
+  content:"";
+  position:fixed; left:0; right:0; bottom:0;
+  height: calc(env(safe-area-inset-bottom) + 1px); /* было просто env(...); добавил +1px */
+  background: linear-gradient(180deg, var(--bg1), var(--bg0));
+  pointer-events:none;
+}
 
   *{ box-sizing:border-box }
 
@@ -755,7 +755,7 @@ function applyTheme(t){
   if(t.card2) setVar('--cardGrad2', t.card2);
 }
 
-// 10 вариантов фона (bg1 сверху → bg0 снизу)
+// 15 вариантов фона (bg1 сверху → bg0 снизу)
 const BG_PRESETS = [
   {name:'Default',         bg0:'#0b0a12', bg1:'#141126'},
   {name:'Deep Blue',       bg0:'#091735', bg1:'#0a0f2d'},
@@ -767,9 +767,13 @@ const BG_PRESETS = [
   {name:'Navy',            bg0:'#0f223d', bg1:'#0a1630'},
   {name:'Indigo',          bg0:'#0f0b2c', bg1:'#16123f'},
   {name:'Graphite',        bg0:'#0a0c10', bg1:'#111418'},
+  {name:'Amethyst Mist',   bg0:'#2a224a', bg1:'#3a2d62'},
+  {name:'Dusk Blue',       bg0:'#1e2a46', bg1:'#2b3a5f'},
+  {name:'Velvet Plum',     bg0:'#2b1f2f', bg1:'#3c2a45'},
+  {name:'Teal Dawn',       bg0:'#18323a', bg1:'#234550'},
+  {name:'Slate Dawn',      bg0:'#1f2430', bg1:'#2c3450'},
 ];
 
-// 10 вариантов градиента карточек (card1 сверху → card2 снизу)
 const CARD_PRESETS = [
   {name:'Default',     card1:'#2a2452', card2:'#211c40'},
   {name:'Blue Steel',  card1:'#2b3a52', card2:'#1d293d'},
@@ -781,7 +785,13 @@ const CARD_PRESETS = [
   {name:'Brown',       card1:'#453a22', card2:'#352a18'},
   {name:'Indigo',      card1:'#27334f', card2:'#1d2540'},
   {name:'Blue',        card1:'#2a2f52', card2:'#202644'},
+  {name:'Lilac Glow',   card1:'#3b3670', card2:'#2d2960'},
+  {name:'Skywash',      card1:'#38537a', card2:'#2a3f62'},
+  {name:'Seafoam',      card1:'#2d5056', card2:'#224347'},
+  {name:'Warm Taupe',   card1:'#4a3a2d', card2:'#3a2c22'},
+  {name:'Stone Gray',   card1:'#4a4a56', card2:'#343545'},
 ];
+
 
 function buildPalettes(){
   // Фон
@@ -1372,4 +1382,3 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
-
