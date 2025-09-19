@@ -1237,24 +1237,32 @@ let BIG_DICT_ES2EN = Object.create(null);
     trTimer = setTimeout(()=>{ doTranslateActive(); }, 600);
   }
 
-  /** Keyboard & Clicks */
-  function hasInputFocus(){ const ae=document.activeElement; return ae && (['INPUT','TEXTAREA'].includes(ae.tagName) || ae.isContentEditable); }
-  window.addEventListener('keydown', (e)=>{ if(hasInputFocus()) return; if(state.tab!=='flash') return;
-    if(e.code==='Space'){ e.preventDefault(); flipCard(); }
-    else if(e.key==='ArrowRight'){ e.preventDefault(); applyLearned(); }
-    else if(e.key==='ArrowLeft'){ e.preventDefault(); applyRepeat(); }
-    else if((e.key||'').toLowerCase()==='n'){ e.preventDefault(); nextCard(); }
-  });
+ /** Keyboard & Clicks */
+function hasInputFocus(){ 
+  const ae = document.activeElement; 
+  return ae && (['INPUT','TEXTAREA'].includes(ae.tagName) || ae.isContentEditable); 
+}
+window.addEventListener('keydown', (e)=>{ 
+  if(hasInputFocus()) return; 
+  if(state.tab!=='flash') return;
+  if(e.code==='Space'){ e.preventDefault(); flipCard(); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); applyLearned(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); applyRepeat(); }
+  else if((e.key||'').toLowerCase()==='n'){ e.preventDefault(); nextCard(); }
+});
 
-  $('#zoneFlip').addEventListener('click', ()=>flipCard());
-  $('#zoneNext').addEventListener('click', ()=>nextCard());
-  $('#zoneBack').addEventListener('click', ()=>prevCard());
-  btnLearned.addEventListener('click', applyLearned);
-  btnRepeat.addEventListener('click', applyRepeat);
-  tabFlash.addEventListener('click', ()=>switchTab('flash'));
-  tabQuiz .addEventListener('click', ()=>switchTab('quiz'));
+$('#zoneFlip').addEventListener('click', ()=>flipCard());
+$('#zoneNext').addEventListener('click', ()=>nextCard());
+$('#zoneBack').addEventListener('click', ()=>prevCard());
+btnLearned.addEventListener('click', applyLearned);
+btnRepeat .addEventListener('click', applyRepeat);
 
-  function openSettings(){
+/* Верхние табы */
+tabFlash.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
+tabQuiz .addEventListener('click', ()=>{ switchTab('quiz');  setActiveNavLive(); });
+
+/* ----- ОДНИ И ТЕ ЖЕ действия для верхних и нижних кнопок ----- */
+function openSettings(){
   buildPalettes();
   if (settingsListWrap && elList && elList.parentElement !== settingsListWrap) {
     settingsListWrap.appendChild(elList);
@@ -1264,20 +1272,58 @@ let BIG_DICT_ES2EN = Object.create(null);
   applyListVisibility();
   dlgSettings.showModal();
 }
-
 btnSettings.addEventListener('click', openSettings);
-navSettings?.addEventListener('click', openSettings);
 
 function openAdd(){
   document.activeElement?.blur?.();
   dlgAdd.showModal();
   dlgAdd.focus({ preventScroll:true });
 }
-
 btnAdd?.addEventListener('click', openAdd);
-navAdd?.addEventListener('click', openAdd);
 
-  addFront.addEventListener('input', scheduleAutoTranslate);
+/* Активное состояние нижней навигации — живой поиск элементов */
+function setActiveNavLive(){
+  const f = document.getElementById('navFlash');
+  const q = document.getElementById('navQuiz');
+  if (!f || !q) return;
+  f.classList.toggle('active', state.tab === 'flash');
+  q.classList.toggle('active', state.tab === 'quiz');
+}
+
+/* Привязать обработчики к нижним кнопкам, когда они появятся в DOM */
+function wireBottomNav(){
+  const f = document.getElementById('navFlash');
+  const q = document.getElementById('navQuiz');
+  const a = document.getElementById('navAdd');
+  const s = document.getElementById('navSettings');
+
+  if (f && !f.hasAttribute('data-bound')) {
+    f.setAttribute('data-bound','');
+    f.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
+  }
+  if (q && !q.hasAttribute('data-bound')) {
+    q.setAttribute('data-bound','');
+    q.addEventListener('click', ()=>{ switchTab('quiz');  setActiveNavLive(); });
+  }
+  if (a && !a.hasAttribute('data-bound')) {
+    a.setAttribute('data-bound','');
+    a.addEventListener('click', openAdd);
+  }
+  if (s && !s.hasAttribute('data-bound')) {
+    s.setAttribute('data-bound','');
+    s.addEventListener('click', openSettings);
+  }
+  setActiveNavLive();
+}
+/* навешиваем, когда весь HTML (включая <nav> внизу) распарсится */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', wireBottomNav);
+} else {
+  wireBottomNav();
+}
+
+/* Перевод */
+addFront.addEventListener('input', scheduleAutoTranslate);
 addBack .addEventListener('input', scheduleAutoTranslate);
 btnTranslate.addEventListener('click', doTranslateActive);
 
