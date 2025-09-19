@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Flashcards EN↔ES — One File</title>
 <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-192.png"><!-- оставляем одну iOS-иконку -->
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -15,9 +15,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flashcards">
-
-<!-- Иконка для iOS -->
-<link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
   :root{
@@ -48,7 +45,7 @@
     padding-bottom: 0;
   }
 
-    *{ box-sizing:border-box }
+  *{ box-sizing:border-box }
 
   /* Контейнер приложения: именно он скроллится */
   .wrap{
@@ -74,6 +71,7 @@
   .bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--grad1),var(--grad2));transition:width .3s var(--ease)}
   .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
 
+  /* убрал role=tablist с .tabs — см. PATCH ниже */
   .tabs{display:grid;grid-template-columns:auto 1fr auto;align-items:center;margin-top:10px;gap:8px}
 
   .iconbtn{
@@ -137,6 +135,8 @@
   .btn:active{ transform:scale(.95) }
   .btn.green{ background:linear-gradient(180deg,#1e9a66,#148c5c) }
   .btn.blue{  background:linear-gradient(180deg,#3b7bff,#2d68e8) }
+  /* PATCH: цвет текста вынесен в CSS, уберём инлайны */
+  .btn.green, .btn.blue { color:#fff; -webkit-text-fill-color:#fff; }
 
   .row{display:flex; gap:8px; align-items:center; margin-top:14px; flex-wrap:wrap}
   .chip{appearance:none; border:none; background:#251f44; color:var(--text); padding:10px 12px; border-radius:999px; cursor:pointer; box-shadow:var(--shadow-soft); font-size:14px}
@@ -210,27 +210,29 @@
   /* Убираем tap-highlight на iOS/Android */
   .iconbtn, .chip, .btn { -webkit-tap-highlight-color: transparent; }
 </style>
-
-
 </head>
+
 <body>
 <div class="wrap" id="app" aria-live="polite">
   <header>
-  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Прогресс обучения"><span id="progressFill"></span></div>
-  <div class="meta" id="progressText">Прогресс: 0% (0/0) | Повторить: 0</div>
-
-  <div class="tabs" role="tablist" aria-label="Навигация вкладок">
-    <button class="iconbtn" id="btnSettings" title="Настройки" aria-label="Настройки">⚙️</button>
-
-    <div class="tabbar">
-      <button role="tab" aria-selected="true" id="tabFlash" class="tab active">Cards</button>
-      <button class="dirbtn" id="btnDirection" type="button" title="Сменить направление">EN→ES</button>
-      <button role="tab" aria-selected="false" id="tabQuiz" class="tab">Quiz</button>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Прогресс обучения">
+      <span id="progressFill"></span>
     </div>
+    <div class="meta" id="progressText">Прогресс: 0% (0/0) | Повторить: 0</div>
 
-    <button class="iconbtn" id="btnAdd" title="Добавить карточку" aria-label="Добавить">＋</button>
-  </div>
-</header>
+    <!-- PATCH: убран role="tablist" с .tabs, оставляем как чистую сетку -->
+    <div class="tabs" aria-label="Навигация вкладок">
+      <button class="iconbtn" id="btnSettings" title="Настройки" aria-label="Настройки">⚙️</button>
+
+      <div class="tabbar">
+        <button role="tab" aria-selected="true" id="tabFlash" class="tab active" aria-controls="viewFlash">Cards</button>
+        <button class="dirbtn" id="btnDirection" type="button" title="Сменить направление">EN→ES</button>
+        <button role="tab" aria-selected="false" id="tabQuiz" class="tab" aria-controls="viewQuiz">Quiz</button>
+      </div>
+
+      <button class="iconbtn" id="btnAdd" title="Добавить карточку" aria-label="Добавить">＋</button>
+    </div>
+  </header>
 
   <!-- FLASHCARDS -->
   <section id="viewFlash">
@@ -247,21 +249,22 @@
         </div>
       </div>
       <div class="controls">
-        <button class="btn blue"  id="btnRepeat"  style="color:#fff !important; -webkit-text-fill-color:#fff">↺ Повторить</button>
-<button class="btn green" id="btnLearned" style="color:#fff !important; -webkit-text-fill-color:#fff">✔ Запомнил</button>
+        <!-- PATCH: убраны инлайн-стили текста -->
+        <button class="btn blue"  id="btnRepeat">↺ Повторить</button>
+        <button class="btn green" id="btnLearned">✔ Запомнил</button>
       </div>
     </div>
 
     <div class="row"><div id="counters" class="meta">Всего: 0 • Выучено: 0 • Повторить: 0</div></div>
 
-        <div class="listwrap" id="mainListWrap" hidden>
-  <div class="list" id="list"></div>
-</div>
+    <div class="listwrap" id="mainListWrap" hidden>
+      <div class="list" id="list"></div>
+    </div>
   </section>
 
   <!-- QUIZ -->
   <section id="viewQuiz" hidden>
-    <div class="quiz" role="group" aria-label="Quiz">
+    <div class="quiz" role="group" aria-label="Quiz" aria-describedby="quizMeta"><!-- PATCH: aria-describedby -->
       <div class="meta" id="quizMeta">вопрос 0 из 0, правильных 0</div>
       <h3 id="quizPrompt">…</h3>
       <div class="opts" id="quizOpts"></div>
@@ -273,28 +276,28 @@
 <!-- SETTINGS MODAL -->
 <dialog id="dlgSettings" aria-label="Настройки">
   <form method="dialog" class="modal">
-  <h3>Настройки</h3>
+    <h3>Настройки</h3>
 
-  <div class="row" style="flex-direction:column;align-items:flex-start;width:100%">
-    <div>Фон приложения</div>
-    <div id="bgPalette" class="palette" aria-label="Выбор фона"></div>
-  </div>
+    <div class="row" style="flex-direction:column;align-items:flex-start;width:100%">
+      <div>Фон приложения</div>
+      <div id="bgPalette" class="palette" aria-label="Выбор фона"></div>
+    </div>
 
-  <div class="row" style="flex-direction:column;align-items:flex-start;width:100%">
-    <div>Цвет карточек</div>
-    <div id="cardPalette" class="palette" aria-label="Выбор цвета карточек"></div>
-  </div>
+    <div class="row" style="flex-direction:column;align-items:flex-start;width:100%">
+      <div>Цвет карточек</div>
+      <div id="cardPalette" class="palette" aria-label="Выбор цвета карточек"></div>
+    </div>
 
-  <div class="row">
-  <button type="button" class="chip" id="btnToggleList" aria-expanded="true">Скрыть список</button>
-  <button type="button" class="chip" id="btnReset"
-    onclick="localStorage.removeItem('minimal-flashcards-html-v1'); location.reload();">
-    Сброс данных
-  </button>
-</div>
-<div id="settingsListWrap" class="listwrap" hidden></div>
-  <div class="actions"><button class="chip" value="cancel">Закрыть</button></div>
-</form>
+    <div class="row">
+      <button type="button" class="chip" id="btnToggleList" aria-expanded="true">Скрыть список</button>
+      <button type="button" class="chip" id="btnReset"
+        onclick="localStorage.removeItem('minimal-flashcards-html-v1'); location.reload();">
+        Сброс данных
+      </button>
+    </div>
+    <div id="settingsListWrap" class="listwrap" hidden></div>
+    <div class="actions"><button class="chip" value="cancel">Закрыть</button></div>
+  </form>
 </dialog>
 
 <!-- ADD MODAL -->
@@ -307,10 +310,10 @@
 
     <div class="row" style="justify-content:space-between;width:100%">
       <label class="ios-switch">
-  <input type="checkbox" id="autoTranslate" checked />
-  <span class="track"><span class="thumb"></span></span>
-  <span class="switch-text">Автоперевод</span>
-</label>
+        <input type="checkbox" id="autoTranslate" checked />
+        <span class="track"><span class="thumb"></span></span>
+        <span class="switch-text">Автоперевод</span>
+      </label>
       <div class="meta" id="trStatus"><span class="spinner" aria-live="polite"></span></div>
     </div>
 
@@ -327,7 +330,6 @@
 </dialog>
 
 <!-- Встроенный офлайн-словарь EN→ES -->
-<!-- сюда потом можно вставить ещё ~5000 объектов -->
 <script type="application/json" id="offlineDictENES">
 [
   {"en":"make a reservation","es":"hacer una reserva"},
@@ -408,7 +410,7 @@
   {"en":"i would like lunch","es":"quisiera almuerzo"},
   {"en":"i would like dinner","es":"quisiera cena"},
   {"en":"a table for two, please","es":"una mesa para dos, por favor"},
-  {"en":"a table for four, please","es":"una mesa para cuatro, por favor"},
+  {"en":"a table for four, please","es":"una mesa для cuatro, por favor"},
   {"en":"the menu, please","es":"el menú, por favor"},
   {"en":"the bill, please","es":"la cuenta, por favor"},
   {"en":"with sugar","es":"con azúcar"},
@@ -455,7 +457,6 @@
 <script>
 (() => {
   const STORAGE_KEY = 'minimal-flashcards-html-v1';
-  /* ... */
 
   /** ---------- Helpers ---------- */
   const $ = sel => document.querySelector(sel);
@@ -473,28 +474,24 @@
   function escapeHtml(s){ return (s??'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   /** ---------- State ---------- */
-const state = {
-  cards: [],
-  currentId: null,
-  direction: 'EN2ES',
-  tab: 'flash',
-  shuffleSeed: 1.2345,
-  showList: false,
-
-  // стек истории показа карточек (для «назад»)
-  history: [],
-
-  theme: { bg0:'', bg1:'', card1:'', card2:'' },
-
-  quiz: { pool:[], index:0, right:0, finished:false, lastAnswer:null }
-};
+  const state = {
+    cards: [],
+    currentId: null,
+    direction: 'EN2ES',
+    tab: 'flash',
+    shuffleSeed: 1.2345,
+    showList: false,
+    history: [],
+    theme: { bg0:'', bg1:'', card1:'', card2:'' },
+    quiz: { pool:[], index:0, right:0, finished:false, lastAnswer:null }
+  };
 
   /** ---------- DOM ---------- */
   const elProgressFill = $('#progressFill'), elProgressText=$('#progressText'), elCounters=$('#counters');
   const elFront=$('#frontText'), elBack=$('#backText'), elCard=$('#card'), elList=$('#list');
-const mainListWrap = $('#mainListWrap');
-const settingsListWrap = $('#settingsListWrap');
-const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
+  const mainListWrap = $('#mainListWrap');
+  const settingsListWrap = $('#settingsListWrap');
+  const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
   const elZoneBack=$('#zoneBack'), elZoneFlip=$('#zoneFlip'), elZoneNext=$('#zoneNext');
   const btnLearned=$('#btnLearned'), btnRepeat=$('#btnRepeat');
   const tabFlash=$('#tabFlash'), tabQuiz=$('#tabQuiz'), viewFlash=$('#viewFlash'), viewQuiz=$('#viewQuiz');
@@ -505,8 +502,7 @@ const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
   const quizMeta=$('#quizMeta'), quizPrompt=$('#quizPrompt'), quizOpts=$('#quizOpts'), quizRestart=$('#quizRestart');
   const autoTranslate=$('#autoTranslate'), btnTranslate=$('#btnTranslate'), trStatus=$('#trStatus');
   const bgPalette=$('#bgPalette'), cardPalette=$('#cardPalette');
-  
- 
+
   /** ---------- App ---------- */
   function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
   function addCard(front, back, demo=false){
@@ -515,146 +511,147 @@ const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
     if(!state.currentId) state.currentId=c.id; saveState();
   }
   function ensureDemo(){
-  // Если уже есть сохранённые карточки — ничего не делаем
-  if (state.cards.length) return;
+    if (state.cards.length) return;
 
-  // Старый демо-набор
-  addCard('Hello! Good morning','¡Hola! Buenos días',true);
-  addCard('Thank you','¡Gracias!',true);
-  addCard('How much is this?','¿Cuánto cuesta esto?',true);
-  addCard('The salad','La ensalada',true);
-  addCard('The soup','La sopa',true);
-  addCard('a menu','un menú',true);
-  addCard('a napkin','una servilleta',true);
-  addCard('Thank you very much','¡Muchas gracias!',true);
-  addCard('Goodbye!','¡Adiós!',true);
-  addCard('Very well, and you?','Muy bien, ¿y tú?',true);
-  addCard('a fork','un tenedor',true);
-  addCard('a spoon','una cuchara',true);
-  addCard('The United States','los Estados Unidos',true);
-  addCard('Wow excellent!','¡Wow! ¡Qué bueno!',true);
-  addCard('Hello, How are you?','Hola, ¿cómo estás?',true);
-  addCard('Yes, of course','Sí, claro',true);
-  addCard('Where are you from?','¿De dónde eres?',true);
-  addCard('A table for two, please','Una mesa para dos, por favor',true);
-  addCard('do sports','hacer deportes',true);
-  addCard('the fish','el pescado',true);
-  addCard('read','leer',true);
-  addCard('write','escribir',true);
-  addCard('I am Max','Yo soy Max',true);
-  addCard('Hello, nice to meet you','Hola, mucho gusto',true);
-  addCard('Welcome!','¡Bienvenidos!',true);
-  addCard('cook','cocinar',true);
-  addCard('I am from Armenia','Yo soy de Armenia',true);
-  addCard('Delicious food','Comida rica',true);
-  addCard('What do you like to do?','¿Qué te gusta hacer?',true);
-  addCard('Welcome to the restaurant!','¡Bienvenido(a) al restaurante!',true);
-  addCard('What is your name?','¿Cómo te llamas?',true);
-  addCard('Could you bring a menu please?','¿Podría traer un menú, por favor?',true);
-  addCard('What do you like to cook?','¿Qué te gusta cocinar?',true);
-  addCard('My name is Victor (I am called)','Me llamo Victor',true);
-  addCard('See you later','Hasta luego',true);
-  addCard('You are welcome (It is nothing)','De nada',true);
-  addCard('I like your Spanish','¡Me gusta tu español!',true);
-  addCard('I am from the United States','Yo soy de los Estados Unidos',true);
-  addCard('Mexico','México',true);
-  addCard('Canada','Canadá',true);
-  addCard('France','Francia',true);
-  addCard('How many people are in your party? (How many are you?)','¿Cuántos son?',true);
-  addCard('Do you want anything else?','¿Desea algo más?',true);
-  addCard('I would recommend the pasta','Le recomendaría la pasta',true);
-  addCard('What would you like? (What (do you) desire?)','¿Qué desea?',true);
-  addCard('I like to read (write)','Me gusta leer (escribir)',true);
-  addCard('What do you recommend? (me)','¿Qué me recomienda?',true);
-  addCard('I like to do yoga (sports)','Me gusta hacer yoga (deportes)',true);
-  addCard('Can you say that again, please?','¿Puedes decirlo de nuevo, por favor?',true);
-  addCard('What don’t you like to do?','¿Qué no te gusta hacer?',true);
-  addCard('I don’t like to do yoga','No me gusta hacer yoga',true);
-  addCard('I don’t like to read (write)','No me gusta leer (escribir)',true);
-  addCard('Oh, I see','Ah, ya veo',true);
-  addCard('I’m sorry, what did you say?','Disculpa, ¿qué dijiste?',true);
-  addCard('draw','dibujar',true);
-  addCard('paint','pintar',true);
-  addCard('study Spanish','estudiar español',true);
-  addCard('sing','cantar',true);
-  addCard('I like to study Spanish','Me gusta estudiar español',true);
-  addCard('I like to draw and paint','Me gusta dibujar y pintar',true);
-  addCard('I like to cook and do sports','Me gusta cocinar y hacer deportes',true);
-  addCard('Can you repeat that again, please?','¿Puedes repetir eso de nuevo, por favor?',true);
-  addCard('That’s wonderful!','¡Maravilloso!',true);
-  addCard('Я восхищен','Encantado',true);
-  addCard('What do you like to do in your free time?','¿Qué te gusta hacer en tu tiempo libre?',true);
-  addCard('I like to sing in my free time','En mi tiempo libre me gusta cantar',true);
-  addCard('Delicious','¡Delicioso!',true);
-  addCard('Brilliant','¡Brillante!',true);
-  addCard('fun','divertido',true);
-  addCard('boring','aburrido',true);
-  addCard('easy','fácil',true);
-  addCard('difficult','difícil',true);
-  addCard('Why do you like to cook?','¿Por qué te gusta cocinar?',true);
-  addCard('Why don’t you like to cook?','¿Por qué no te gusta cocinar?',true);
-  addCard('I like to study Spanish because it’s easy','Me gusta estudiar español porque es fácil',true);
-  addCard('I like to cook because it’s fun','Me gusta cocinar porque es divertido',true);
-  addCard('I don’t like to read because it’s boring','No me gusta leer porque es aburrido',true);
-  addCard('I don’t like to draw because it’s difficult','No me gusta dibujar porque es difícil',true);
-  addCard('I understand','Entiendo',true);
-  addCard('Let’s do something fun today','¡Vamos a hacer algo divertido hoy!',true);
-  addCard('Monday','lunes',true);
-  addCard('Tuesday','martes',true);
-  addCard('Wednesday','miércoles',true);
-  addCard('Thursday','jueves',true);
-  addCard('a plate','un plato',true);
-  addCard('a cup','una taza',true);
-  addCard('a wine glass','una copa',true);
-  addCard('Could you bring a cup, please?','¿Podría traer una taza, por favor?',true);
-  addCard('six','seis',true);
-  addCard('seven','siete',true);
-  addCard('eight','ocho',true);
-  addCard('nine','nueve',true);
-  addCard('ten','diez',true);
-  addCard('Are you free?','¿Estás libre?', true);
-  addCard('The museum','el museo', true);
-  addCard('Nothing special','Nada especial', true);
-  addCard('Sunday','domingo', true);
-  addCard('The store','la tienda', true);
-  addCard('What are you doing on Tuesday?','¿Qué haces el martes?', true);
-  addCard('I’m free on Friday','Estoy libre el viernes', true);
-  addCard('Friday','viernes', true);
-  addCard('I’m going to work','Voy a trabajar', true);
-  addCard('Nice to see you again!','¡Qué gusto verte de nuevo!', true);
-  addCard('Are you busy on Friday?','¿Estás ocupado el viernes?', true);
-  addCard('The beach','la playa', true);
-  addCard('Saturday','sábado', true);
-  addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
-  addCard('The restaurant','el restaurante', true);
-  addCard('Week','semana', true);
-  addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
-  addCard('The movie theater','el cine', true);
-  addCard('Well said!','¡Bien dicho!', true);
-  addCard('What are you doing on Monday?','¿Qué haces el lunes?', true);
+    addCard('Hello! Good morning','¡Hola! Buenos días',true);
+    addCard('Thank you','¡Gracias!',true);
+    addCard('How much is this?','¿Cuánto cuesta esto?',true);
+    addCard('The salad','La ensalada',true);
+    addCard('The soup','La sopa',true);
+    addCard('a menu','un menú',true);
+    addCard('a napkin','una servilleta',true);
+    addCard('Thank you very much','¡Muchas gracias!',true);
+    addCard('Goodbye!','¡Adiós!',true);
+    addCard('Very well, and you?','Muy bien, ¿y tú?',true);
+    addCard('a fork','un tenedor',true);
+    addCard('a spoon','una cuchara',true);
+    addCard('The United States','los Estados Unidos',true);
+    addCard('Wow excellent!','¡Wow! ¡Qué bueno!',true);
+    addCard('Hello, How are you?','Hola, ¿cómo estás?',true);
+    addCard('Yes, of course','Sí, claro',true);
+    addCard('Where are you from?','¿De dónde eres?',true);
+    addCard('A table for two, please','Una mesa para dos, por favor',true);
+    addCard('do sports','hacer deportes',true);
+    addCard('the fish','el pescado',true);
+    addCard('read','leer',true);
+    addCard('write','escribir',true);
+    addCard('I am Max','Yo soy Max',true);
+    addCard('Hello, nice to meet you','Hola, mucho gusto',true);
+    addCard('Welcome!','¡Bienvenidos!',true);
+    addCard('cook','cocinar',true);
+    addCard('I am from Armenia','Yo soy de Armenia',true);
+    addCard('Delicious food','Comida rica',true);
+    addCard('What do you like to do?','¿Qué te gusta hacer?',true);
+    addCard('Welcome to the restaurant!','¡Bienvenido(a) al restaurante!',true);
+    addCard('What is your name?','¿Cómo te llamas?',true);
+    addCard('Could you bring a menu please?','¿Podría traer un menú, por favor?',true);
+    addCard('What do you like to cook?','¿Qué te gusta cocinar?',true);
+    addCard('My name is Victor (I am called)','Me llamo Victor',true);
+    addCard('See you later','Hasta luego',true);
+    addCard('You are welcome (It is nothing)','De nada',true);
+    addCard('I like your Spanish','¡Me gusta tu español!',true);
+    addCard('I am from the United States','Yo soy de los Estados Unidos',true);
+    addCard('Mexico','México',true);
+    addCard('Canada','Canadá',true);
+    addCard('France','Francia',true);
+    addCard('How many people are in your party? (How many are you?)','¿Cuántos son?',true);
+    addCard('Do you want anything else?','¿Desea algo más?',true);
+    addCard('I would recommend the pasta','Le recomendaría la pasta',true);
+    addCard('What would you like? (What (do you) desire?)','¿Qué desea?',true);
+    addCard('I like to read (write)','Me gusta leer (escribir)',true);
+    addCard('What do you recommend? (me)','¿Qué me recomienda?',true);
+    addCard('I like to do yoga (sports)','Me gusta hacer yoga (deportes)',true);
+    addCard('Can you say that again, please?','¿Puedes decirlo de nuevo, por favor?',true);
+    addCard('What don’t you like to do?','¿Qué no te gusta hacer?',true);
+    addCard('I don’t like to do yoga','No me gusta hacer yoga',true);
+    addCard('I don’t like to read (write)','No me gusta leer (escribir)',true);
+    addCard('Oh, I see','Ah, ya veo',true);
+    addCard('I’m sorry, what did you say?','Disculpa, ¿qué dijiste?',true);
+    addCard('draw','dibujar',true);
+    addCard('paint','pintar',true);
+    addCard('study Spanish','estudiar español',true);
+    addCard('sing','cantar',true);
+    addCard('I like to study Spanish','Me gusta estudiar español',true);
+    addCard('I like to draw and paint','Me gusta dibujar y pintar',true);
+    addCard('I like to cook and do sports','Me gusta cocinar y hacer deportes',true);
+    addCard('Can you repeat that again, please?','¿Puedes repetir eso de nuevo, por favor?',true);
+    addCard('That’s wonderful!','¡Maravilloso!',true);
+    addCard('Я восхищен','Encantado',true);
+    addCard('What do you like to do in your free time?','¿Qué te gusta hacer en tu tiempo libre?',true);
+    addCard('I like to sing in my free time','En mi tiempo libre me gusta cantar',true);
+    addCard('Delicious','¡Delicioso!',true);
+    addCard('Brilliant','¡Brillante!',true);
+    addCard('fun','divertido',true);
+    addCard('boring','aburrido',true);
+    addCard('easy','fácil',true);
+    addCard('difficult','difícil',true);
+    addCard('Why do you like to cook?','¿Por qué te gusta cocinar?',true);
+    addCard('Why don’t you like to cook?','¿Por qué no te gusta cocinar?',true);
+    addCard('I like to study Spanish because it’s easy','Me gusta estudiar español porque es fácil',true);
+    addCard('I like to cook because it’s fun','Me gusta cocinar porque es divertido',true);
+    addCard('I don’t like to read because it’s boring','No me gusta leer porque es aburrido',true);
+    addCard('I don’t like to draw because it’s difficult','No me gusta dibujar porque es difícil',true);
+    addCard('I understand','Entiendo',true);
+    addCard('Let’s do something fun today','¡Vamos a hacer algo divertido hoy!',true);
+    addCard('Monday','lunes',true);
+    addCard('Tuesday','martes',true);
+    addCard('Wednesday','miércoles',true);
+    addCard('Thursday','jueves',true);
+    addCard('a plate','un plato',true);
+    addCard('a cup','una taza',true);
+    addCard('a wine glass','una copa',true);
+    addCard('Could you bring a cup, please?','¿Podría traer una taza, por favor?',true);
+    addCard('six','seis',true);
+    addCard('seven','siete',true);
+    addCard('eight','ocho',true);
+    addCard('nine','nueve',true);
+    addCard('ten','diez',true);
+    addCard('Are you free?','¿Estás libre?', true);
+    addCard('The museum','el museo', true);
+    addCard('Nothing special','Nada especial', true);
+    addCard('Sunday','domingo', true);
+    addCard('The store','la tienda', true);
+    addCard('What are you doing on Tuesday?','¿Qué haces el martes?', true);
+    addCard('I’m free on Friday','Estoy libre el viernes', true);
+    addCard('Friday','viernes', true);
+    addCard('I’m going to work','Voy a trabajar', true);
+    addCard('Nice to see you again!','¡Qué gusto verte de nuevo!', true);
+    addCard('Are you busy on Friday?','¿Estás ocupado el viernes?', true);
+    addCard('The beach','la playa', true);
+    addCard('Saturday','sábado', true);
+    addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
+    addCard('The restaurant','el restaurante', true);
+    addCard('Week','semana', true);
+    addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
+    addCard('The movie theater','el cine', true);
+    addCard('Well said!','¡Bien dicho!', true);
+    addCard('What are you doing on Monday?','¿Qué haces el lunes?', true);
 
-  // Перемешиваем весь демо-набор
-  for (let i = state.cards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [state.cards[i], state.cards[j]] = [state.cards[j], state.cards[i]];
+    for (let i = state.cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [state.cards[i], state.cards[j]] = [state.cards[j], state.cards[i]];
+    }
+    state.currentId = state.cards[0]?.id || null;
+    saveState();
   }
 
-  // Текущую карточку выставим на первую после тасовки
-  state.currentId = state.cards[0]?.id || null;
-  saveState();
-}
-
-
-  function computeProgress(){ const total=state.cards.length;
+  function computeProgress(){
+    const total=state.cards.length;
     const learnedCount=state.cards.filter(c=>c.learned===true||c.box>=4).length;
-    const toRepeat=state.cards.filter(c=>c.repeat===true||c.hard===true||c.box<=2).length;
+    /* PATCH: не считаем к повтору явные learned */
+    const toRepeat=state.cards.filter(c=>{
+      if (c.learned) return false;
+      return c.repeat===true||c.hard===true||c.box<=2;
+    }).length;
     const pct= total? Math.round((learnedCount/total)*100) : 0;
     return {total, learnedCount, toRepeat, pct};
   }
-  function refreshProgressUI(){ const {total,learnedCount,toRepeat,pct}=computeProgress();
+  function refreshProgressUI(){
+    const {total,learnedCount,toRepeat,pct}=computeProgress();
     elProgressFill.style.width = pct+'%';
     elProgressText.textContent = `Прогресс: ${pct}% (${learnedCount}/${total}) | Повторить: ${toRepeat}`;
-    elProgressFill.parentElement.setAttribute('aria-valuenow', pct);
+    const bar = elProgressFill.parentElement;
+    bar.setAttribute('aria-valuenow', String(pct)); /* PATCH: явный target */
     elCounters.textContent = `Всего: ${total} • Выучено: ${learnedCount} • Повторить: ${toRepeat}`;
   }
   function currentCard(){ if(!state.currentId && state.cards.length) state.currentId=state.cards[0].id; return state.cards.find(c=>c.id===state.currentId)||null; }
@@ -662,12 +659,11 @@ const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
   function renderFlash(){ const c=currentCard(); if(!c){ elFront.textContent='Нет карточек'; elBack.textContent='Добавьте новые через ＋'; return;} setCardTexts(c); }
 
   function renderList(){
-  const items = state.cards;
-  if(!items.length){
-    elList.innerHTML = `<div style="padding:14px;color:var(--muted)">Пока нет карточек</div>`;
-    return;
-  }
-
+    const items = state.cards;
+    if(!items.length){
+      elList.innerHTML = `<div style="padding:14px;color:var(--muted)">Пока нет карточек</div>`;
+      return;
+    }
     elList.innerHTML = items.map(c=>{
       const status = c.learned? '✔ выучено' : (c.repeat||c.hard||c.box<=2)? '↺ повторить' : 'в процессе';
       return `<details data-id="${c.id}">
@@ -684,7 +680,8 @@ const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
     }).join('');
   }
 
-  function switchTab(tab){ state.tab=tab;
+  function switchTab(tab){
+    state.tab=tab;
     tabFlash.classList.toggle('active',tab==='flash'); tabQuiz.classList.toggle('active',tab==='quiz');
     tabFlash.setAttribute('aria-selected',tab==='flash'); tabQuiz.setAttribute('aria-selected',tab==='quiz');
     viewFlash.hidden=tab!=='flash'; viewQuiz.hidden=tab!=='quiz'; saveState(); if(tab==='quiz') startQuiz();
@@ -692,68 +689,62 @@ const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
 
   let flipped=false;
   function flipCard(force){ flipped = typeof force==='boolean'? force : !flipped; elCard.style.transform = flipped? 'rotateY(180deg)':'rotateY(0deg)'; }
-  function applyLearned(){ const c=currentCard(); if(!c)return; c.learned=true;c.repeat=false;c.hard=false;c.box=clamp(c.box+1,1,5);c.last=now(); nextCard(true); saveState(); refreshProgressUI(); renderList(); }
-  function applyRepeat(){ const c=currentCard(); if(!c)return; c.repeat=true;c.hard=true;c.learned=false;c.box=Math.min(c.box,2);c.last=now(); nextCard(false); saveState(); refreshProgressUI(); renderList(); }
+  /* PATCH: nextCard() без параметров */
+  function applyLearned(){ const c=currentCard(); if(!c)return; c.learned=true;c.repeat=false;c.hard=false;c.box=clamp(c.box+1,1,5);c.last=now(); nextCard(); saveState(); refreshProgressUI(); renderList(); }
+  function applyRepeat(){ const c=currentCard(); if(!c)return; c.repeat=true;c.hard=true;c.learned=false;c.box=Math.min(c.box,2);c.last=now(); nextCard(); saveState(); refreshProgressUI(); renderList(); }
   function directionLabel(){ return state.direction==='EN2ES'?'EN→ES':'ES→EN'; }
   function nextCard(){
-  flipCard(false);
-  if (state.cards.length <= 1) return;
+    flipCard(false);
+    if (state.cards.length <= 1) return;
 
-  const currentIndex = state.cards.findIndex(c => c.id === state.currentId);
-  const weights = state.cards.map(c => 1 / Math.max(1, c.box));
-  state.shuffleSeed += .517;
-  const pick = weightedPick(weights, currentIndex, state.shuffleSeed);
+    const currentIndex = state.cards.findIndex(c => c.id === state.currentId);
+    const weights = state.cards.map(c => 1 / Math.max(1, c.box));
+    state.shuffleSeed += .517;
+    const pick = weightedPick(weights, currentIndex, state.shuffleSeed);
 
-  if (pick >= 0) {
-    // запоминаем текущую карточку в историю
-    if (state.currentId) {
-      state.history.push(state.currentId);
-      // чтобы не разрасталась бесконечно
-      if (state.history.length > 200) state.history.shift();
+    if (pick >= 0) {
+      if (state.currentId) {
+        state.history.push(state.currentId);
+        if (state.history.length > 200) state.history.shift();
+      }
+      state.currentId = state.cards[pick].id;
+      setCardTexts(state.cards[pick]);
     }
-    state.currentId = state.cards[pick].id;
-    setCardTexts(state.cards[pick]);
+    saveState();
   }
-  saveState();
-}
-
-function prevCard(){
-  // идём назад строго по истории показов
-  if (!state.history || state.history.length === 0) return;
-  const prevId = state.history.pop();
-  if (!prevId) return;
-
-  state.currentId = prevId;
-  flipCard(false);
-  renderFlash();
-  saveState();
-}
+  function prevCard(){
+    if (!state.history || state.history.length === 0) return;
+    const prevId = state.history.pop();
+    if (!prevId) return;
+    state.currentId = prevId;
+    flipCard(false);
+    renderFlash();
+    saveState();
+  }
 
   /** List toggle (single button) */
   function applyListVisibility(){
-  if (mainListWrap) mainListWrap.hidden = true;            // на главном экране всегда скрыто
-  if (settingsListWrap) settingsListWrap.hidden = !state.showList; // показываем в модалке
-  btnToggleList.textContent = state.showList ? 'Скрыть список' : 'Показать список';
-  btnToggleList.setAttribute('aria-expanded', String(state.showList));
-}
+    if (mainListWrap) mainListWrap.hidden = true;            // на главном экране всегда скрыто
+    if (settingsListWrap) settingsListWrap.hidden = !state.showList; // показываем в модалке
+    btnToggleList.textContent = state.showList ? 'Скрыть список' : 'Показать список';
+    btnToggleList.setAttribute('aria-expanded', String(state.showList));
+  }
   btnToggleList.addEventListener('click', () => { state.showList = !state.showList; applyListVisibility(); saveState(); });
 
   /** Direction & shuffle */
   elBtnDir.addEventListener('click', ()=>{
-  state.direction = (state.direction==='EN2ES' ? 'ES2EN' : 'EN2ES');
-  elBtnDir.textContent = directionLabel();
+    state.direction = (state.direction==='EN2ES' ? 'ES2EN' : 'EN2ES');
+    elBtnDir.textContent = directionLabel();
+    elBtnDir.setAttribute('aria-label','Направление: ' + directionLabel()); /* PATCH: a11y */
 
-  // Обновляем флешкарту
-  const c = currentCard(); 
-  if (c) setCardTexts(c);
+    const c = currentCard(); 
+    if (c) setCardTexts(c);
 
-  // 🔁 Если сейчас открыт Quiz — перерисуем текущий вопрос под новое направление
-  if (state.tab === 'quiz') {
-    repaintQuizCurrent();   // <-- новая функция ниже
-  }
-
-  saveState();
-});
+    if (state.tab === 'quiz') {
+      repaintQuizCurrent();
+    }
+    saveState();
+  });
 
   /** List actions */
   elList.addEventListener('click',(e)=>{
@@ -762,12 +753,12 @@ function prevCard(){
     const id=details.getAttribute('data-id'); const card=state.cards.find(c=>c.id===id); if(!card) return;
     const act=btn.getAttribute('data-act');
     if (act === 'focus') {
-  if (state.currentId) state.history.push(state.currentId);
-  state.currentId = id;
-  renderFlash();
-  details.open = false;
-  saveState();
-}
+      if (state.currentId) state.history.push(state.currentId);
+      state.currentId = id;
+      renderFlash();
+      details.open = false;
+      saveState();
+    }
     if(act==='markLearned'){ card.learned=true; card.repeat=false; card.hard=false; card.box=clamp(card.box+1,1,5); }
     if(act==='markRepeat'){ card.repeat=true; card.hard=true; card.learned=false; card.box=Math.min(card.box,2); }
     if(act==='boxUp'){ card.box=clamp(card.box+1,1,5); }
@@ -776,188 +767,177 @@ function prevCard(){
     saveState(); refreshProgressUI(); renderList(); renderFlash();
   });
 
-/** ---------- Theme presets & palette ---------- */
-function setVar(name,val){ document.documentElement.style.setProperty(name, val); }
-function applyTheme(t){
-  if(!t) return;
-  if(t.bg0)   setVar('--bg0', t.bg0);
-  if(t.bg1)   setVar('--bg1', t.bg1);
-  if(t.card1) setVar('--cardGrad1', t.card1);
-  if(t.card2) setVar('--cardGrad2', t.card2);
-}
+  /** ---------- Theme presets & palette ---------- */
+  function setVar(name,val){ document.documentElement.style.setProperty(name, val); }
+  function applyTheme(t){
+    if(!t) return;
+    if(t.bg0)   setVar('--bg0', t.bg0);
+    if(t.bg1)   setVar('--bg1', t.bg1);
+    if(t.card1) setVar('--cardGrad1', t.card1);
+    if(t.card2) setVar('--cardGrad2', t.card2);
+  }
 
-// 27 вариантов фона (bg1 сверху → bg0 снизу)
-const BG_PRESETS = [
-  {name:'Default',         bg0:'#0b0a12', bg1:'#141126'},
-  {name:'Deep Blue',       bg0:'#091735', bg1:'#0a0f2d'},
-  {name:'Midnight Purple', bg0:'#100a1a', bg1:'#1a1029'},
-  {name:'Emerald',         bg0:'#071512', bg1:'#0b1f1a'},
-  {name:'Teal Dark',       bg0:'#0a171a', bg1:'#0d1f24'},
-  {name:'Charcoal',        bg0:'#15151b', bg1:'#0e0e12'},
-  {name:'Warm Brown',      bg0:'#120b09', bg1:'#1e1310'},
-  {name:'Navy',            bg0:'#0f223d', bg1:'#0a1630'},
-  {name:'Indigo',          bg0:'#0f0b2c', bg1:'#16123f'},
-  {name:'Graphite',        bg0:'#0a0c10', bg1:'#111418'},
-  {name:'Amethyst Mist',   bg0:'#2a224a', bg1:'#3a2d62'},
-  {name:'Dusk Blue',       bg0:'#1e2a46', bg1:'#2b3a5f'},
-  {name:'Velvet Plum',     bg0:'#2b1f2f', bg1:'#3c2a45'},
-  {name:'Teal Dawn',       bg0:'#18323a', bg1:'#234550'},
-  {name:'Slate Dawn',      bg0:'#1f2430', bg1:'#2c3450'},
-  {name:'Obsidian',        bg0:'#090a0d', bg1:'#111218'},
-  {name:'Cobalt Night',    bg0:'#0b1a33', bg1:'#152845'},
-  {name:'Aurora Teal',     bg0:'#0a1e21', bg1:'#153238'},
-  {name:'Ruby Noir',       bg0:'#1a0b0f', bg1:'#291218'},
-  {name:'Moss Deep',       bg0:'#0b1510', bg1:'#132018'},
-  {name:'Steel Navy',      bg0:'#0c1624', bg1:'#142236'},
-  {name:'Coffee Char',     bg0:'#18100b', bg1:'#24160f'},
-  {name:'Space Gray',      bg0:'#0b0e13', bg1:'#161b22'},
-  {name:'Wine Dusk',       bg0:'#1e0f17', bg1:'#2a1822'},
-  {name:'Cyan Twilight',   bg0:'#0a1c24', bg1:'#112a37'},
-  {name:'Orchid Smoke',    bg0:'#2c2448', bg1:'#3b3261'},
-  {name:'Jade Midnight',   bg0:'#0a1c18', bg1:'#142823'},
-];
+  const BG_PRESETS = [
+    {name:'Default',         bg0:'#0b0a12', bg1:'#141126'},
+    {name:'Deep Blue',       bg0:'#091735', bg1:'#0a0f2d'},
+    {name:'Midnight Purple', bg0:'#100a1a', bg1:'#1a1029'},
+    {name:'Emerald',         bg0:'#071512', bg1:'#0b1f1a'},
+    {name:'Teal Dark',       bg0:'#0a171a', bg1:'#0d1f24'},
+    {name:'Charcoal',        bg0:'#15151b', bg1:'#0e0e12'},
+    {name:'Warm Brown',      bg0:'#120b09', bg1:'#1e1310'},
+    {name:'Navy',            bg0:'#0f223d', bg1:'#0a1630'},
+    {name:'Indigo',          bg0:'#0f0b2c', bg1:'#16123f'},
+    {name:'Graphite',        bg0:'#0a0c10', bg1:'#111418'},
+    {name:'Amethyst Mist',   bg0:'#2a224a', bg1:'#3a2d62'},
+    {name:'Dusk Blue',       bg0:'#1e2a46', bg1:'#2b3a5f'},
+    {name:'Velvet Plum',     bg0:'#2b1f2f', bg1:'#3c2a45'},
+    {name:'Teal Dawn',       bg0:'#18323a', bg1:'#234550'},
+    {name:'Slate Dawn',      bg0:'#1f2430', bg1:'#2c3450'},
+    {name:'Obsidian',        bg0:'#090a0d', bg1:'#111218'},
+    {name:'Cobalt Night',    bg0:'#0b1a33', bg1:'#152845'},
+    {name:'Aurora Teal',     bg0:'#0a1e21', bg1:'#153238'},
+    {name:'Ruby Noir',       bg0:'#1a0b0f', bg1:'#291218'},
+    {name:'Moss Deep',       bg0:'#0b1510', bg1:'#132018'},
+    {name:'Steel Navy',      bg0:'#0c1624', bg1:'#142236'},
+    {name:'Coffee Char',     bg0:'#18100b', bg1:'#24160f'},
+    {name:'Space Gray',      bg0:'#0b0e13', bg1:'#161b22'},
+    {name:'Wine Dusk',       bg0:'#1e0f17', bg1:'#2a1822'},
+    {name:'Cyan Twilight',   bg0:'#0a1c24', bg1:'#112a37'},
+    {name:'Orchid Smoke',    bg0:'#2c2448', bg1:'#3b3261'},
+    {name:'Jade Midnight',   bg0:'#0a1c18', bg1:'#142823'},
+  ];
 
+  const CARD_PRESETS = [
+    {name:'Default',     card1:'#2a2452', card2:'#211c40'},
+    {name:'Blue Steel',  card1:'#2b3a52', card2:'#1d293d'},
+    {name:'Forest',      card1:'#23403a', card2:'#1a2f2a'},
+    {name:'Maroon',      card1:'#3f2a2a', card2:'#2d1d1d'},
+    {name:'Plum',        card1:'#4a2a3f', card2:'#341d2d'},
+    {name:'Dark Gray',   card1:'#404040', card2:'#2a2a2a'},
+    {name:'Teal',        card1:'#2a3a46', card2:'#1f2a34'},
+    {name:'Brown',       card1:'#453a22', card2:'#352a18'},
+    {name:'Indigo',      card1:'#27334f', card2:'#1d2540'},
+    {name:'Blue',        card1:'#2a2f52', card2:'#202644'},
+    {name:'Lilac Glow',  card1:'#3b3670', card2:'#2d2960'},
+    {name:'Skywash',     card1:'#38537a', card2:'#2a3f62'},
+    {name:'Seafoam',     card1:'#2d5056', card2:'#224347'},
+    {name:'Warm Taupe',  card1:'#4a3a2d', card2:'#3a2c22'},
+    {name:'Stone Gray',  card1:'#4a4a56', card2:'#343545'},
+    {name:'Sapphire',     card1:'#2b3f7a', card2:'#1e2d5c'},
+    {name:'Amberwood',    card1:'#5a3b1f', card2:'#3e2a16'},
+    {name:'Mint',         card1:'#2e5a56', card2:'#224743'},
+    {name:'Rosewood',     card1:'#5a2c3a', card2:'#3e1f2a'},
+    {name:'Obsidian',     card1:'#2e2f36', card2:'#1f2026'},
+    {name:'Copper',       card1:'#6a3f2b', card2:'#4a2c1e'},
+    {name:'Gunmetal',     card1:'#3a4350', card2:'#2a313b'},
+    {name:'Navy Glass',   card1:'#2a3656', card2:'#1f2942'},
+    {name:'Grape',        card1:'#4a2f6a', card2:'#35214d'},
+    {name:'Ocean',        card1:'#2b4960', card2:'#1f3647'},
+    {name:'Charcoal Blue',card1:'#39414f', card2:'#2a303a'},
+    {name:'Sunset Plum',  card1:'#5c3a58', card2:'#412a40'},
+  ];
 
-// 27 вариантов карточек (card1 сверху → card2 снизу)
-const CARD_PRESETS = [
-  {name:'Default',     card1:'#2a2452', card2:'#211c40'},
-  {name:'Blue Steel',  card1:'#2b3a52', card2:'#1d293d'},
-  {name:'Forest',      card1:'#23403a', card2:'#1a2f2a'},
-  {name:'Maroon',      card1:'#3f2a2a', card2:'#2d1d1d'},
-  {name:'Plum',        card1:'#4a2a3f', card2:'#341d2d'},
-  {name:'Dark Gray',   card1:'#404040', card2:'#2a2a2a'},
-  {name:'Teal',        card1:'#2a3a46', card2:'#1f2a34'},
-  {name:'Brown',       card1:'#453a22', card2:'#352a18'},
-  {name:'Indigo',      card1:'#27334f', card2:'#1d2540'},
-  {name:'Blue',        card1:'#2a2f52', card2:'#202644'},
-  {name:'Lilac Glow',  card1:'#3b3670', card2:'#2d2960'},
-  {name:'Skywash',     card1:'#38537a', card2:'#2a3f62'},
-  {name:'Seafoam',     card1:'#2d5056', card2:'#224347'},
-  {name:'Warm Taupe',  card1:'#4a3a2d', card2:'#3a2c22'},
-  {name:'Stone Gray',  card1:'#4a4a56', card2:'#343545'},
-  {name:'Sapphire',     card1:'#2b3f7a', card2:'#1e2d5c'},
-  {name:'Amberwood',    card1:'#5a3b1f', card2:'#3e2a16'},
-  {name:'Mint',         card1:'#2e5a56', card2:'#224743'},
-  {name:'Rosewood',     card1:'#5a2c3a', card2:'#3e1f2a'},
-  {name:'Obsidian',     card1:'#2e2f36', card2:'#1f2026'},
-  {name:'Copper',       card1:'#6a3f2b', card2:'#4a2c1e'},
-  {name:'Gunmetal',     card1:'#3a4350', card2:'#2a313b'},
-  {name:'Navy Glass',   card1:'#2a3656', card2:'#1f2942'},
-  {name:'Grape',        card1:'#4a2f6a', card2:'#35214d'},
-  {name:'Ocean',        card1:'#2b4960', card2:'#1f3647'},
-  {name:'Charcoal Blue',card1:'#39414f', card2:'#2a303a'},
-  {name:'Sunset Plum',  card1:'#5c3a58', card2:'#412a40'},
-];
-
-
-
-function buildPalettes(){
-  // Фон
-  bgPalette.innerHTML='';
-  BG_PRESETS.forEach((p)=>{
-    const b=document.createElement('button');
-    b.className='swatch';
-    b.title=p.name;
-    b.style.background=`linear-gradient(180deg, ${p.bg1}, ${p.bg0})`;
-    const isActive = state.theme.bg0===p.bg0 && state.theme.bg1===p.bg1;
-    b.setAttribute('aria-pressed', isActive ? 'true':'false');
-    b.addEventListener('click', ()=>{
-      state.theme.bg0=p.bg0; state.theme.bg1=p.bg1;
-      applyTheme(state.theme); saveState();
-      for(const x of bgPalette.querySelectorAll('.swatch')) x.setAttribute('aria-pressed','false');
-      b.setAttribute('aria-pressed','true');
+  function buildPalettes(){
+    // Фон
+    bgPalette.innerHTML='';
+    BG_PRESETS.forEach((p)=>{
+      const b=document.createElement('button');
+      b.className='swatch';
+      b.title=p.name;
+      b.style.background=`linear-gradient(180deg, ${p.bg1}, ${p.bg0})`;
+      const isActive = state.theme.bg0===p.bg0 && state.theme.bg1===p.bg1;
+      b.setAttribute('aria-pressed', isActive ? 'true':'false');
+      b.addEventListener('click', ()=>{
+        state.theme.bg0=p.bg0; state.theme.bg1=p.bg1;
+        applyTheme(state.theme); saveState();
+        for(const x of bgPalette.querySelectorAll('.swatch')) x.setAttribute('aria-pressed','false');
+        b.setAttribute('aria-pressed','true');
+      });
+      bgPalette.appendChild(b);
     });
-    bgPalette.appendChild(b);
-  });
 
-  // Карточки
-  cardPalette.innerHTML='';
-  CARD_PRESETS.forEach((p)=>{
-    const b=document.createElement('button');
-    b.className='swatch';
-    b.title=p.name;
-    b.style.background=`linear-gradient(180deg, ${p.card1}, ${p.card2})`;
-    const isActive = state.theme.card1===p.card1 && state.theme.card2===p.card2;
-    b.setAttribute('aria-pressed', isActive ? 'true':'false');
-    b.addEventListener('click', ()=>{
-      state.theme.card1=p.card1; state.theme.card2=p.card2;
-      applyTheme(state.theme); saveState();
-      for(const x of cardPalette.querySelectorAll('.swatch')) x.setAttribute('aria-pressed','false');
-      b.setAttribute('aria-pressed','true');
+    // Карточки
+    cardPalette.innerHTML='';
+    CARD_PRESETS.forEach((p)=>{
+      const b=document.createElement('button');
+      b.className='swatch';
+      b.title=p.name;
+      b.style.background=`linear-gradient(180deg, ${p.card1}, ${p.card2})`;
+      const isActive = state.theme.card1===p.card1 && state.theme.card2===p.card2;
+      b.setAttribute('aria-pressed', isActive ? 'true':'false');
+      b.addEventListener('click', ()=>{
+        state.theme.card1=p.card1; state.theme.card2=p.card2;
+        applyTheme(state.theme); saveState();
+        for(const x of cardPalette.querySelectorAll('.swatch')) x.setAttribute('aria-pressed','false');
+        b.setAttribute('aria-pressed','true');
+      });
+      cardPalette.appendChild(b);
     });
-    cardPalette.appendChild(b);
-  });
-}
+  }
 
   /** Quiz */
   function buildQuizPool(){ return state.cards.filter(c=>c.repeat===true||c.hard===true||c.box<=2); }
   function startQuiz(){
-  state.quiz.pool = buildQuizPool();
-  state.quiz.index = 0; 
-  state.quiz.right = 0; 
-  state.quiz.finished = false;
-  quizRestart.hidden = true;
+    state.quiz.pool = buildQuizPool();
+    state.quiz.index = 0; 
+    state.quiz.right = 0; 
+    state.quiz.finished = false;
+    quizRestart.hidden = true;
 
-  if (state.quiz.pool.length === 0){
-    quizMeta.textContent = 'Нет карточек для Quiz — отметьте «Повторить» или с низким Box.';
-    quizPrompt.textContent = 'Пул пуст.';
+    if (state.quiz.pool.length === 0){
+      quizMeta.textContent = 'Нет карточек для Quiz — отметьте «Повторить» или с низким Box.';
+      quizPrompt.textContent = 'Пул пуст.';
+      quizOpts.innerHTML = '';
+      return;
+    }
+    nextQuizQ();
+  }
+
+  function repaintQuizCurrent(){
+    const q = state.quiz;
+    if (!q || q.finished) return;
+    if (!q.pool || q.pool.length === 0){ startQuiz(); return; }
+
+    const card = q.pool[q.index];
+    const { prompt, options, correctIndex } = choiceSet(
+      card, state.cards, state.shuffleSeed + q.index
+    );
+
+    quizPrompt.textContent = prompt;
     quizOpts.innerHTML = '';
-    return;
+    options.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.textContent = opt;
+      b.addEventListener('click', ()=>{
+        const children = Array.from(quizOpts.children);
+        children.forEach((x, idx) => x.classList.toggle('correct', idx === correctIndex));
+
+        if (i === correctIndex) {
+          q.right++;
+          card.box = clamp(card.box+1, 1, 5);
+          card.repeat = false;
+          card.last = now();
+        } else {
+          card.repeat = true;
+          card.box = 1;
+          card.learned = false;
+          card.hard = true;
+          children[i].classList.add('wrong');
+        }
+
+        saveState();
+        refreshProgressUI();
+        renderList();
+
+        children.forEach(x => x.disabled = true);
+        setTimeout(()=>{ q.index++; nextQuizQ(); }, 550);
+      }, { once:true });
+      quizOpts.appendChild(b);
+    });
+
+    quizRestart.hidden = true;
+    quizMeta.textContent = `вопрос ${q.index+1} из ${q.pool.length}, правильных ${q.right}`;
   }
-
-  nextQuizQ();
-} // ← здесь закрываем startQuiz
-
-// ← и ТЕПЕРЬ — отдельной функцией (вне startQuiz)
-function repaintQuizCurrent(){
-  const q = state.quiz;
-  if (!q || q.finished) return;
-
-  if (!q.pool || q.pool.length === 0){
-    startQuiz();
-    return;
-  }
-
-  const card = q.pool[q.index];
-  const { prompt, options, correctIndex } = choiceSet(
-    card, state.cards, state.shuffleSeed + q.index
-  );
-
-  quizPrompt.textContent = prompt;
-  quizOpts.innerHTML = '';
-  options.forEach((opt, i) => {
-    const b = document.createElement('button');
-    b.textContent = opt;
-    b.addEventListener('click', ()=>{
-      const children = Array.from(quizOpts.children);
-      children.forEach((x, idx) => x.classList.toggle('correct', idx === correctIndex));
-
-      if (i === correctIndex) {
-        q.right++;
-        card.box = clamp(card.box+1, 1, 5);
-        card.repeat = false;
-        card.last = now();
-      } else {
-        card.repeat = true;
-        card.box = 1;
-        card.learned = false;
-        card.hard = true;
-        children[i].classList.add('wrong');
-      }
-
-      saveState();
-      refreshProgressUI();
-      renderList();
-
-      children.forEach(x => x.disabled = true);
-      setTimeout(()=>{ q.index++; nextQuizQ(); }, 550);
-    }, { once:true });
-    quizOpts.appendChild(b);
-  });
-
-  quizRestart.hidden = true;
-  quizMeta.textContent = `вопрос ${q.index+1} из ${q.pool.length}, правильных ${q.right}`;
-}
 
   function choiceSet(correct, allCards, seed){
     const pool=allCards.filter(c=>c.id!==correct.id); const opts=[]; let s=seed;
@@ -970,8 +950,16 @@ function repaintQuizCurrent(){
   }
   function nextQuizQ(){
     const q=state.quiz, total=q.pool.length;
-    if(q.index>=total){ q.finished=true; quizMeta.textContent=`Готово! правильных ${q.right} из ${total}`; quizPrompt.textContent='Quiz завершён'; quizOpts.innerHTML=''; quizRestart.hidden=false; return; }
-    const card=q.pool[q.index]; const {prompt,options,correctIndex}=choiceSet(card,state.cards,state.shuffleSeed+q.index);
+    if(q.index>=total){
+      q.finished=true;
+      quizMeta.textContent=`Готово! правильных ${q.right} из ${total}`;
+      quizPrompt.textContent='Quiz завершён';
+      quizOpts.innerHTML='';
+      quizRestart.hidden=false;
+      return;
+    }
+    const card=q.pool[q.index];
+    const {prompt,options,correctIndex}=choiceSet(card,state.cards,state.shuffleSeed+q.index);
     quizPrompt.textContent=prompt; quizOpts.innerHTML='';
     options.forEach((opt,i)=>{ const b=document.createElement('button'); b.textContent=opt;
       b.addEventListener('click', ()=>{
@@ -993,7 +981,6 @@ function repaintQuizCurrent(){
     'https://libretranslate.com/translate'
   ];
 
-  // Базовая лексика (EN→ES) + гендер (m/f) для артикля
   const NOUNS = {
     "airport":{es:"aeropuerto",g:"m"},"station":{es:"estación",g:"f"},"bus":{es:"autobús",g:"m"},"train":{es:"tren",g:"m"},
     "taxi":{es:"taxi",g:"m"},"subway":{es:"metro",g:"m"},"ticket":{es:"billete",g:"m"},"toilet":{es:"baño",g:"m"},
@@ -1025,103 +1012,6 @@ function repaintQuizCurrent(){
     "one ticket, please":"un billete, por favor","water, please":"agua, por favor","i would like":"me gustaría","i need help":"necesito ayuda"
   };
 
-  // Простые числа (0-100) для фраз "… euros"
-  const NUM = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
-  function enNumberToEs(s){
-    const m = s.match(/^(\d{1,3})(\s+)?(euros|euro)?$/);
-    if(!m) return null;
-    const n = +m[1]; const tail = m[3] ? ' euros' : '';
-    const specials = {0:'cero',1:'uno',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho',9:'nueve',10:'diez',11:'once',12:'doce',13:'trece',14:'catorce',15:'quince',20:'veinte',30:'treinta',40:'cuarenta',50:'cincuenta',60:'sesenta',70:'setenta',80:'ochenta',90:'noventa',100:'cien'};
-    if(specials[n]) return specials[n] + (tail? ' euros':'');
-    if(n<20) return specials[n]+(tail?' euros':'');
-    if(n<100){ const tens=Math.floor(n/10)*10; const ones=n%10; return specials[tens] + (ones? ' y '+specials[ones]:'') + (tail?' euros':''); }
-    if(n===100) return 'cien' + (tail?' euros':'');
-    return null;
-  }
-
-  function art(word, g){ // артикль с учётом начального ударного a- (agua → el agua)
-    if(g==='m') return 'el ' + word;
-    // femeninos con a- tónica usan "el" в ед. числе (agua, águila…)
-    if(g==='f' && /^[aá]gua|^[aá]guila|^[aá]rpa|^[aá]rea/.test(word)) return 'el ' + word;
-    return 'la ' + word;
-  }
-
-  function findNoun(en){
-    const k = en.toLowerCase().trim();
-    if(NOUNS[k]) return NOUNS[k];
-    // попытка без артикля
-    const noArticle = k.replace(/^(the|a|an)\s+/,'').trim();
-    return NOUNS[noArticle] || null;
-  }
-
-  function templateEN2ES(s){
-    let t = s.trim().toLowerCase().replace(/\s+/g,' ');
-    if(FIXED_EN2ES[t]) return FIXED_EN2ES[t];
-
-    // Числа / цены
-    const num = enNumberToEs(t);
-    if(num) return num;
-
-    // where is the [NOUN]
-    let m = t.match(/^where\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
-    if(m){
-      const n = findNoun(m[2]); if(n) return `¿dónde está ${art(n.es,n.g)}?`;
-    }
-
-    // do you have [NOUN]
-    m = t.match(/^do\s+you\s+have\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
-    if(m){
-      const n = findNoun(m[2]); if(n) return `¿tiene ${art(n.es,n.g)}?`;
-    }
-
-    // i need / i want / i would like [NOUN]
-    m = t.match(/^i\s+(need|want|would like)\s+(the\s+|a\s+|an\s+)?(.+)\.?$/);
-    if(m){
-      const verb = m[1]==='need' ? 'necesito' : (m[1]==='want' ? 'quiero' : 'me gustaría');
-      const n = findNoun(m[3]);
-      if(n) return `${verb} ${art(n.es,n.g)}`;
-    }
-
-    // one/two ... [NOUN] please
-    m = t.match(/^(one|two|three|four|five)\s+(.+)\s+please\.?$/);
-    if(m){
-      const numMap = {one:'un',two:'dos',three:'tres',four:'cuatro',five:'cinco'};
-      const n = findNoun(m[2]); if(n) return `${numMap[m[1]]} ${n.es}, por favor`;
-    }
-
-    // how much is (the) [NOUN]
-    m = t.match(/^how\s+much\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
-    if(m){
-      const n = findNoun(m[2]); if(n) return `¿cuánto cuesta ${art(n.es,n.g)}?`;
-    }
-
-    // turn left/right
-    m = t.match(/^turn\s+(left|right)\.?$/);
-    if(m){
-      const dir = m[1]==='left' ? 'izquierda' : 'derecha';
-      return `gire a la ${dir}`;
-    }
-
-    // simple greetings variants
-    m = t.match(/^good\s+(morning|afternoon|evening|night)\.?$/);
-    if(m){
-      return {morning:'buenos días',afternoon:'buenas tardes',evening:'buenas noches',night:'buenas noches'}[m[1]];
-    }
-
-    return null; // не распознали
-  }
-
-  function templateES2EN(s){
-    const t = s.trim().toLowerCase();
-    // обратные фиксированные
-    for(const [k,v] of Object.entries(FIXED_EN2ES)){ if(v===t) return k; }
-    // простые вопросы
-    if(/^¿dónde está /.test(t)) return 'where is it?';
-    if(/^¿tiene /.test(t)) return 'do you have it?';
-    if(/^gire a la /.test(t)) return 'turn (left/right)';
-    return null;
-  }
-
   const SMALL_DICT_EN2ES = {
     "where is the bathroom?":"¿dónde está el baño?","the bill, please":"la cuenta, por favor","water":"agua","coffee":"café",
     "tea":"té","bread":"pan","help":"ayuda","i need help":"necesito ayuda","i would like a coffee":"me gustaría un café",
@@ -1129,17 +1019,16 @@ function repaintQuizCurrent(){
   };
   const SMALL_DICT_ES2EN = Object.fromEntries(Object.entries(SMALL_DICT_EN2ES).map(([k,v])=>[v,k]));
 
-// 🔥 Большой офлайн-словарь (заполняется из встроенного JSON)
-let BIG_DICT_EN2ES = Object.create(null);
-let BIG_DICT_ES2EN = Object.create(null);
+  let BIG_DICT_EN2ES = Object.create(null);
+  let BIG_DICT_ES2EN = Object.create(null);
 
   async function translateOnline(q, dir, signal){
     const payload = {
-  q,                     // ← используем аргумент функции
-  source: 'auto',
-  target: dir === 'EN2ES' ? 'es' : 'en',
-  format: 'text'
-};
+      q,
+      source: 'auto',
+      target: dir === 'EN2ES' ? 'es' : 'en',
+      format: 'text'
+    };
     for(const url of LT_ENDPOINTS){
       try{
         const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), signal });
@@ -1152,22 +1041,93 @@ let BIG_DICT_ES2EN = Object.create(null);
     throw new Error('online_fail');
   }
 
-  function offlineTranslate(text, dir){
-  const t = (text||'').trim().toLowerCase();
-  if(!t) return '';
-  if(dir==='EN2ES'){
-    if (BIG_DICT_EN2ES[t])   return BIG_DICT_EN2ES[t];   // ← сначала большой
-    if (SMALL_DICT_EN2ES[t]) return SMALL_DICT_EN2ES[t];
-    const byTpl = templateEN2ES(t); if(byTpl) return byTpl;
-    const rm = t.replace(/\b(the|a|an)\b/g,'').trim();
-    const n = findNoun(rm); if(n) return n.es;
-  } else {
-    if (BIG_DICT_ES2EN[t])   return BIG_DICT_ES2EN[t];   // ← сначала большой
-    if (SMALL_DICT_ES2EN[t]) return SMALL_DICT_ES2EN[t];
-    const byTpl = templateES2EN(t); if(byTpl) return byTpl;
+  function enNumberToEs(s){
+    const m = s.match(/^(\d{1,3})(\s+)?(euros|euro)?$/);
+    if(!m) return null;
+    const n = +m[1]; const tail = m[3] ? ' euros' : '';
+    const specials = {0:'cero',1:'uno',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho',9:'nueve',10:'diez',11:'once',12:'doce',13:'trece',14:'catorce',15:'quince',20:'веинте',30:'тринта',40:'куарента',50:'синкuenta',60:'сесента',70:'сетента',80:'очента',90:'новента',100:'cien'};
+    if(specials[n]) return specials[n] + (tail? ' euros':'');
+    if(n<20) return specials[n]+(tail?' euros':'');
+    if(n<100){ const tens=Math.floor(n/10)*10; const ones=n%10; return specials[tens] + (ones? ' y '+specials[ones]:'') + (tail?' euros':''); }
+    if(n===100) return 'cien' + (tail?' euros':'');
+    return null;
   }
-  return t;
-}
+
+  function art(word, g){
+    if(g==='m') return 'el ' + word;
+    if(g==='f' && /^[aá]gua|^[aá]guila|^[aá]rpa|^[aá]rea/.test(word)) return 'el ' + word;
+    return 'la ' + word;
+  }
+  function findNoun(en){
+    const k = en.toLowerCase().trim();
+    if(NOUNS[k]) return NOUNS[k];
+    const noArticle = k.replace(/^(the|a|an)\s+/,'').trim();
+    return NOUNS[noArticle] || null;
+  }
+  function templateEN2ES(s){
+    let t = s.trim().toLowerCase().replace(/\s+/g,' ');
+    if(FIXED_EN2ES[t]) return FIXED_EN2ES[t];
+    const num = enNumberToEs(t);
+    if(num) return num;
+    let m = t.match(/^where\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
+    if(m){
+      const n = findNoun(m[2]); if(n) return `¿dónde está ${art(n.es,n.g)}?`;
+    }
+    m = t.match(/^do\s+you\s+have\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
+    if(m){
+      const n = findNoun(m[2]); if(n) return `¿tiene ${art(n.es,n.g)}?`;
+    }
+    m = t.match(/^i\s+(need|want|would like)\s+(the\s+|a\s+|an\s+)?(.+)\.?$/);
+    if(m){
+      const verb = m[1]==='need' ? 'necesito' : (m[1]==='want' ? 'quiero' : 'me gustaría');
+      const n = findNoun(m[3]);
+      if(n) return `${verb} ${art(n.es,n.g)}`;
+    }
+    m = t.match(/^(one|two|three|four|five)\s+(.+)\s+please\.?$/);
+    if(m){
+      const numMap = {one:'un',two:'dos',three:'tres',four:'cuatro',five:'cinco'};
+      const n = findNoun(m[2]); if(n) return `${numMap[m[1]]} ${n.es}, por favor`;
+    }
+    m = t.match(/^how\s+much\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
+    if(m){
+      const n = findNoun(m[2]); if(n) return `¿cuánto cuesta ${art(n.es,n.g)}?`;
+    }
+    m = t.match(/^turn\s+(left|right)\.?$/);
+    if(m){
+      const dir = m[1]==='left' ? 'izquierda' : 'derecha';
+      return `gire a la ${dir}`;
+    }
+    m = t.match(/^good\s+(morning|afternoon|evening|night)\.?$/);
+    if(m){
+      return {morning:'buenos días',afternoon:'buenas tardes',evening:'buenas noches',night:'buenas noches'}[m[1]];
+    }
+    return null;
+  }
+  function templateES2EN(s){
+    const t = s.trim().toLowerCase();
+    for(const [k,v] of Object.entries(FIXED_EN2ES)){ if(v===t) return k; }
+    if(/^¿dónde está /.test(t)) return 'where is it?';
+    if(/^¿tiene /.test(t)) return 'do you have it?';
+    if(/^gire a la /.test(t)) return 'turn (left/right)';
+    return null;
+  }
+
+  function offlineTranslate(text, dir){
+    const t = (text||'').trim().toLowerCase();
+    if(!t) return '';
+    if(dir==='EN2ES'){
+      if (BIG_DICT_EN2ES[t])   return BIG_DICT_EN2ES[t];
+      if (SMALL_DICT_EN2ES[t]) return SMALL_DICT_EN2ES[t];
+      const byTpl = templateEN2ES(t); if(byTpl) return byTpl;
+      const rm = t.replace(/\b(the|a|an)\b/g,'').trim();
+      const n = findNoun(rm); if(n) return n.es;
+    } else {
+      if (BIG_DICT_ES2EN[t])   return BIG_DICT_ES2EN[t];
+      if (SMALL_DICT_ES2EN[t]) return SMALL_DICT_ES2EN[t];
+      const byTpl = templateES2EN(t); if(byTpl) return byTpl;
+    }
+    return t;
+  }
 
   function setTrStatus(msg){ trStatus.innerHTML = msg? `<span>${msg}</span>` : '<span class="spinner"></span>'; }
   let trAbort = null;
@@ -1184,15 +1144,14 @@ let BIG_DICT_ES2EN = Object.create(null);
     let fromEl, toEl, dir;
 
     if (front && !back) {
-  dir = 'EN2ES'; fromEl = addFront; toEl = addBack;
-} else if (back && !front) {
-  dir = 'ES2EN'; fromEl = addBack; toEl = addFront;
-} else {
-  // оба поля есть — ориентируемся по фокусу, по умолчанию front→back
-  const ae = document.activeElement;
-  if (ae === addBack) { dir = 'ES2EN'; fromEl = addBack; toEl = addFront; }
-  else                { dir = 'EN2ES'; fromEl = addFront; toEl = addBack; }
-}
+      dir = 'EN2ES'; fromEl = addFront; toEl = addBack;
+    } else if (back && !front) {
+      dir = 'ES2EN'; fromEl = addBack; toEl = addFront;
+    } else {
+      const ae = document.activeElement;
+      if (ae === addBack) { dir = 'ES2EN'; fromEl = addBack; toEl = addFront; }
+      else                { dir = 'EN2ES'; fromEl = addFront; toEl = addBack; }
+    }
 
     setTrStatus('Перевод…');
     btnTranslate.disabled = true;
@@ -1205,7 +1164,6 @@ let BIG_DICT_ES2EN = Object.create(null);
       toEl.value = online;
       setTrStatus('Готово ✓');
     }catch(e){
-      // офлайн шаблоны (>1000 комбинаций)
       toEl.value = offlineTranslate(fromEl.value, dir);
       setTrStatus('Оффлайн перевод');
     }finally{
@@ -1215,7 +1173,6 @@ let BIG_DICT_ES2EN = Object.create(null);
     }
   }
 
-  // debounce для автоперевода
   let trTimer = null;
   function scheduleAutoTranslate(){
     if(!autoTranslate.checked) return;
@@ -1223,177 +1180,164 @@ let BIG_DICT_ES2EN = Object.create(null);
     trTimer = setTimeout(()=>{ doTranslateActive(); }, 600);
   }
 
- /** Keyboard & Clicks */
-function hasInputFocus(){ 
-  const ae = document.activeElement; 
-  return ae && (['INPUT','TEXTAREA'].includes(ae.tagName) || ae.isContentEditable); 
-}
-window.addEventListener('keydown', (e)=>{ 
-  if(hasInputFocus()) return; 
-  if(state.tab!=='flash') return;
-  if(e.code==='Space'){ e.preventDefault(); flipCard(); }
-  else if(e.key==='ArrowRight'){ e.preventDefault(); applyLearned(); }
-  else if(e.key==='ArrowLeft'){ e.preventDefault(); applyRepeat(); }
-  else if((e.key||'').toLowerCase()==='n'){ e.preventDefault(); nextCard(); }
-});
-
-$('#zoneFlip').addEventListener('click', ()=>flipCard());
-$('#zoneNext').addEventListener('click', ()=>nextCard());
-$('#zoneBack').addEventListener('click', ()=>prevCard());
-btnLearned.addEventListener('click', applyLearned);
-btnRepeat .addEventListener('click', applyRepeat);
-
-/* Верхние табы */
-tabFlash.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
-tabQuiz .addEventListener('click', ()=>{ switchTab('quiz');  setActiveNavLive(); });
-
-/* ----- ОДНИ И ТЕ ЖЕ действия для верхних и нижних кнопок ----- */
-function openSettings(){
-  buildPalettes();
-  if (settingsListWrap && elList && elList.parentElement !== settingsListWrap) {
-    settingsListWrap.appendChild(elList);
+  /** Keyboard & Clicks */
+  function hasInputFocus(){ 
+    const ae = document.activeElement; 
+    return ae && (['INPUT','TEXTAREA'].includes(ae.tagName) || ae.isContentEditable); 
   }
-  renderList();
-  state.showList = false;
-  applyListVisibility();
-  dlgSettings.showModal();
-}
-btnSettings.addEventListener('click', openSettings);
+  window.addEventListener('keydown', (e)=>{ 
+    if(hasInputFocus()) return; 
+    if(state.tab!=='flash') return;
+    if(e.code==='Space'){ e.preventDefault(); flipCard(); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); applyLearned(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); applyRepeat(); }
+    else if((e.key||'').toLowerCase()==='n'){ e.preventDefault(); nextCard(); }
+  });
 
-function openAdd(){
-  document.activeElement?.blur?.();
-  dlgAdd.showModal();
-  dlgAdd.focus({ preventScroll:true });
-}
-btnAdd?.addEventListener('click', openAdd);
+  $('#zoneFlip').addEventListener('click', ()=>flipCard());
+  $('#zoneNext').addEventListener('click', ()=>nextCard());
+  $('#zoneBack').addEventListener('click', ()=>prevCard());
+  btnLearned.addEventListener('click', applyLearned);
+  btnRepeat .addEventListener('click', applyRepeat);
 
-/* Активное состояние нижней навигации — живой поиск элементов */
-function setActiveNavLive(){
-  const f = document.getElementById('navFlash');
-  const q = document.getElementById('navQuiz');
-  if (!f || !q) return;
-  f.classList.toggle('active', state.tab === 'flash');
-  q.classList.toggle('active', state.tab === 'quiz');
-}
+  /* Верхние табы */
+  tabFlash.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
+  tabQuiz .addEventListener('click', ()=>{ switchTab('quiz');  setActiveNavLive(); });
 
-/* Привязать обработчики к нижним кнопкам, когда они появятся в DOM */
-function wireBottomNav(){
-  const f = document.getElementById('navFlash');
-  const q = document.getElementById('navQuiz');
-  const a = document.getElementById('navAdd');
-  const s = document.getElementById('navSettings');
-
-  if (f && !f.hasAttribute('data-bound')) {
-    f.setAttribute('data-bound','');
-    f.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
+  function openSettings(){
+    buildPalettes();
+    if (settingsListWrap && elList && elList.parentElement !== settingsListWrap) {
+      settingsListWrap.appendChild(elList);
+    }
+    renderList();
+    state.showList = false;
+    applyListVisibility();
+    dlgSettings.showModal();
   }
-  if (q && !q.hasAttribute('data-bound')) {
-    q.setAttribute('data-bound','');
-    q.addEventListener('click', ()=>{ switchTab('quiz');  setActiveNavLive(); });
+  btnSettings.addEventListener('click', openSettings);
+
+  function openAdd(){
+    document.activeElement?.blur?.();
+    dlgAdd.showModal();
+    dlgAdd.focus({ preventScroll:true });
   }
-  if (a && !a.hasAttribute('data-bound')) {
-    a.setAttribute('data-bound','');
-    a.addEventListener('click', openAdd);
+  btnAdd?.addEventListener('click', openAdd);
+
+  function setActiveNavLive(){
+    const f = document.getElementById('navFlash');
+    const q = document.getElementById('navQuiz');
+    if (!f || !q) return;
+    f.classList.toggle('active', state.tab === 'flash');
+    q.classList.toggle('active', state.tab === 'quiz');
   }
-  if (s && !s.hasAttribute('data-bound')) {
-    s.setAttribute('data-bound','');
-    s.addEventListener('click', openSettings);
+
+  function wireBottomNav(){
+    const f = document.getElementById('navFlash');
+    const q = document.getElementById('navQuiz');
+    const a = document.getElementById('navAdd');
+    const s = document.getElementById('navSettings');
+
+    if (f && !f.hasAttribute('data-bound')) {
+      f.setAttribute('data-bound','');
+      f.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
+    }
+    if (q && !q.hasAttribute('data-bound')) {
+      q.setAttribute('data-bound','');
+      q.addEventListener('click', ()=>{ switchTab('quiz');  setActiveNavLive(); });
+    }
+    if (a && !a.hasAttribute('data-bound')) {
+      a.setAttribute('data-bound','');
+      a.addEventListener('click', openAdd);
+    }
+    if (s && !s.hasAttribute('data-bound')) {
+      s.setAttribute('data-bound','');
+      s.addEventListener('click', openSettings);
+    }
+    setActiveNavLive();
   }
-  setActiveNavLive();
-}
-/* навешиваем, когда весь HTML (включая <nav> внизу) распарсится */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', wireBottomNav);
-} else {
-  wireBottomNav();
-}
-
-/* Перевод */
-addFront.addEventListener('input', scheduleAutoTranslate);
-addBack .addEventListener('input', scheduleAutoTranslate);
-btnTranslate.addEventListener('click', doTranslateActive);
-
-// ➕ реагируем на включение/выключение автоперевода
-autoTranslate.addEventListener('change', () => {
-  setTrStatus(autoTranslate.checked ? 'Автоперевод вкл' : 'Автоперевод выкл');
-  if (autoTranslate.checked) {
-    // если в одном из полей уже есть текст — запустим перевод сразу
-    scheduleAutoTranslate();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireBottomNav);
+  } else {
+    wireBottomNav();
   }
-});
 
-    // Диалог "Новая карточка" — обработчики
-btnClearAdd.addEventListener('click', () => {
-  addFront.value = '';
-  addBack.value  = '';
-  addFront.focus();
-});
+  /* Перевод */
+  addFront.addEventListener('input', scheduleAutoTranslate);
+  addBack .addEventListener('input', scheduleAutoTranslate);
+  btnTranslate.addEventListener('click', doTranslateActive);
 
-btnAddClose.addEventListener('click', () => {
-  dlgAdd.close();
-  btnAdd.focus(); // можно удалить, если не нужен возврат фокуса на "＋"
-});
+  autoTranslate.addEventListener('change', () => {
+    setTrStatus(autoTranslate.checked ? 'Автоперевод вкл' : 'Автоперевод выкл');
+    if (autoTranslate.checked) scheduleAutoTranslate();
+  });
 
-addForm.addEventListener('submit', (ev) => {
-  ev.preventDefault();
-  const f = addFront.value.trim();
-  const b = addBack.value.trim();
-  if (!f || !b) return;
+  btnClearAdd.addEventListener('click', () => {
+    addFront.value = '';
+    addBack.value  = '';
+    addFront.focus();
+  });
 
-  addCard(f, b);
-  addFront.value = '';
-  addBack.value  = '';
-  refreshProgressUI();
-  renderList();
-  renderFlash();
-  dlgAdd.close();
-});
+  btnAddClose.addEventListener('click', () => {
+    dlgAdd.close();
+    btnAdd.focus();
+  });
 
-    /** Init */
+  addForm.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const f = addFront.value.trim();
+    const b = addBack.value.trim();
+    if (!f || !b) return;
+
+    addCard(f, b);
+    addFront.value = '';
+    addBack.value  = '';
+    refreshProgressUI();
+    renderList();
+    renderFlash();
+    dlgAdd.close();
+  });
+
+  /** Init */
   function init(){
     const loaded = loadState();
     if (loaded) Object.assign(state, loaded);
-if (!Array.isArray(state.history)) state.history = [];
+    if (!Array.isArray(state.history)) state.history = [];
 
-    // Дефолтная тема при первом запуске (когда в localStorage ещё пусто)
-    // Init()
-if (!state.theme || (!state.theme.bg0 && !state.theme.card1)) {
-  state.theme = { ...BG_PRESETS[0], ...CARD_PRESETS[0] };
-  applyTheme(state.theme);
-  saveState();
-} else {
-  applyTheme(state.theme);
-}
-
-// ⬇️ грузим большой словарь из встроенного JSON
-  loadOfflineDictFromEmbedded();
-
-  
-// ---------- Загрузка большого словаря из <script type="application/json" id="offlineDictENES">
-function loadOfflineDictFromEmbedded(){
-  try{
-    const tag = document.getElementById('offlineDictENES');
-    if(!tag) return;
-    const txt = (tag.textContent || '').trim();
-    if(!txt) return;
-
-    const arr = JSON.parse(txt); // ожидаем массив объектов {en, es}
-    const m = Object.create(null);
-    for (const row of arr){
-      const en = String(row.en||'').trim().toLowerCase();
-      const es = String(row.es||'').trim().toLowerCase();
-      if (en && es) m[en] = es;
+    if (!state.theme || (!state.theme.bg0 && !state.theme.card1)) {
+      state.theme = { ...BG_PRESETS[0], ...CARD_PRESETS[0] };
+      applyTheme(state.theme);
+      saveState();
+    } else {
+      applyTheme(state.theme);
     }
-    BIG_DICT_EN2ES = m;
-    BIG_DICT_ES2EN = Object.fromEntries(Object.entries(BIG_DICT_EN2ES).map(([en,es])=>[es,en]));
-    console.log('Offline dict loaded:', Object.keys(BIG_DICT_EN2ES).length, 'pairs');
-  }catch(e){
-    console.warn('Embedded offline dict parse error', e);
-  }
-}
+
+    loadOfflineDictFromEmbedded();
+
+    function loadOfflineDictFromEmbedded(){
+      try{
+        const tag = document.getElementById('offlineDictENES');
+        if(!tag) return;
+        const txt = (tag.textContent || '').trim();
+        if(!txt) return;
+
+        const arr = JSON.parse(txt);
+        const m = Object.create(null);
+        for (const row of arr){
+          const en = String(row.en||'').trim().toLowerCase();
+          const es = String(row.es||'').trim().toLowerCase();
+          if (en && es) m[en] = es;
+        }
+        BIG_DICT_EN2ES = m;
+        BIG_DICT_ES2EN = Object.fromEntries(Object.entries(BIG_DICT_EN2ES).map(([en,es])=>[es,en]));
+        console.log('Offline dict loaded:', Object.keys(BIG_DICT_EN2ES).length, 'pairs');
+      }catch(e){
+        console.warn('Embedded offline dict parse error', e);
+      }
+    }
 
     ensureDemo();
     elBtnDir.textContent = directionLabel();
+    elBtnDir.setAttribute('aria-label','Направление: ' + directionLabel());
     renderFlash();
     renderList();
     refreshProgressUI();
@@ -1407,20 +1351,21 @@ function loadOfflineDictFromEmbedded(){
 
   /** Mini tests */
   function miniTests(){
-  console.log('%cMini tests','background:#352b66;color:#fff;padding:2px 6px;border-radius:6px');
-  const seedBefore=state.shuffleSeed;
-  const weights=state.cards.map(c=>1/Math.max(1,c.box));
-  const pick1=weightedPick(weights,null,seedBefore);
-  const seedAfter=state.shuffleSeed;
-  console.log('Seed immutable:', seedBefore===seedAfter, {pick1,seedBefore,seedAfter});
-  const tmp=[{box:5,learned:false},{box:1,learned:true},{box:3}];
-  const learnedCount=tmp.filter(c=>c.learned||c.box>=4).length;
-  console.log('Progress test (2):', learnedCount);
-}
+    console.log('%cMini tests','background:#352b66;color:#fff;padding:2px 6px;border-radius:6px');
+    const seedBefore=state.shuffleSeed;
+    const weights=state.cards.map(c=>1/Math.max(1,c.box));
+    const pick1=weightedPick(weights,null,seedBefore);
+    const seedAfter=state.shuffleSeed;
+    console.log('Seed immutable:', seedBefore===seedAfter, {pick1,seedBefore,seedAfter});
+    const tmp=[{box:5,learned:false},{box:1,learned:true},{box:3}];
+    const learnedCount=tmp.filter(c=>c.learned||c.box>=4).length;
+    console.log('Progress test (2):', learnedCount);
+  }
 
-document.addEventListener('touchmove', (e)=>{
-  if (!e.target.closest('dialog')) e.preventDefault();
-}, { passive:false });
+  /* PATCH: позволяем скролл внутри .wrap/диалогов, блокируем только фоновую пружину */
+  document.addEventListener('touchmove', (e)=>{
+    if (!e.target.closest('dialog, .wrap')) e.preventDefault();
+  }, { passive:false });
 
 })();
 </script>
