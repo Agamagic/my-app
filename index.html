@@ -514,100 +514,136 @@ const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
     if(demo){ state.cards.push(c); } else { state.cards.unshift(c); }
     if(!state.currentId) state.currentId=c.id; saveState();
   }
-  function ensureDemo(){ if(state.cards.length) return;
-addCard('Hello! Good morning','¡Hola! Buenos días',true);
-addCard('Thank you','¡Gracias!',true);
-addCard('How much is this?','¿Cuánto cuesta esto?',true)
-addCard('The salad','La ensalada',true);
-addCard('The soup','La sopa',true);
-addCard('a menu','un menú',true);
-addCard('a napkin','una servilleta',true);
-addCard('Thank you very much','¡Muchas gracias!',true);
-addCard('Goodbye!','¡Adiós!',true);
-addCard('Very well, and you?','Muy bien, ¿y tú?',true);
-addCard('a fork','un tenedor',true);
-addCard('a spoon','una cuchara',true);
-addCard('The United States','los Estados Unidos',true);
-addCard('Wow excellent!','¡Wow! ¡Qué bueno!',true);
-addCard('Hello, How are you?','Hola, ¿cómo estás?',true);
-addCard('Yes, of course','Sí, claro',true);
-addCard('Where are you from?','¿De dónde eres?',true);
-addCard('A table for two, please','Una mesa para dos, por favor',true);
-addCard('do sports','hacer deportes',true);
-addCard('the fish','el pescado',true);
-addCard('read','leer',true);
-addCard('write','escribir',true);
-addCard('I am Max','Yo soy Max',true);
-addCard('Hello, nice to meet you','Hola, mucho gusto',true);
-addCard('Welcome!','¡Bienvenidos!',true);
-addCard('cook','cocinar',true);
-addCard('I am from Armenia','Yo soy de Armenia',true);
-addCard('Delicious food','Comida rica',true);
-addCard('What do you like to do?','¿Qué te gusta hacer?',true);
-addCard('Welcome to the restaurant!','¡Bienvenido(a) al restaurante!',true);
-addCard('What is your name?','¿Cómo te llamas?',true);
-addCard('Could you bring a menu please?','¿Podría traer un menú, por favor?',true);
-addCard('What do you like to cook?','¿Qué te gusta cocinar?',true);
-addCard('My name is Victor (I am called)','Me llamo Victor',true);
-addCard('See you later','Hasta luego',true);
-addCard('You are welcome (It is nothing)','De nada',true);
-addCard('I like your Spanish','¡Me gusta tu español!',true);
-addCard('I am from the United States','Yo soy de los Estados Unidos',true);
-addCard('Mexico','México',true);
-addCard('Canada','Canadá',true);
-addCard('France','Francia',true);
-addCard('How many people are in your party? (How many are you?)','¿Cuántos son?',true);
-addCard('Do you want anything else?','¿Desea algo más?',true);
-addCard('I would recommend the pasta','Le recomendaría la pasta',true);
-addCard('What would you like? (What (do you) desire?)','¿Qué desea?',true);
-addCard('I like to read (write)','Me gusta leer (escribir)',true);
-addCard('What do you recommend? (me)','¿Qué me recomienda?',true);
-addCard('I like to do yoga (sports)','Me gusta hacer yoga (deportes)',true);
-addCard('Can you say that again, please?','¿Puedes decirlo de nuevo, por favor?',true);
-addCard('What don’t you like to do?','¿Qué no te gusta hacer?',true);
-addCard('I don’t like to do yoga','No me gusta hacer yoga',true);
-addCard('I don’t like to read (write)','No me gusta leer (escribir)',true);
-addCard('Oh, I see','Ah, ya veo',true);
-addCard('I’m sorry, what did you say?','Disculpa, ¿qué dijiste?',true);
-addCard('draw','dibujar',true);
-addCard('paint','pintar',true);
-addCard('study Spanish','estudiar español',true);
-addCard('sing','cantar',true);
-addCard('I like to study Spanish','Me gusta estudiar español',true);
-addCard('I like to draw and paint','Me gusta dibujar y pintar',true);
-addCard('I like to cook and do sports','Me gusta cocinar y hacer deportes',true);
-addCard('Can you repeat that again, please?','¿Puedes repetir eso de nuevo, por favor?',true);
-addCard('That’s wonderful!','¡Maravilloso!',true);
-addCard('Я восхищен','Encantado',true); // по смыслу ещё вариант: "Estoy impresionado" (для муж. рода)
-addCard('What do you like to do in your free time?','¿Qué te gusta hacer en tu tiempo libre?',true);
-addCard('I like to sing in my free time','En mi tiempo libre me gusta cantar',true);
-addCard('Delicious','¡Delicioso!',true);
-addCard('Brilliant','¡Brillante!',true);
-addCard('fun','divertido',true);
-addCard('boring','aburrido',true);
-addCard('easy','fácil',true);
-addCard('difficult','difícil',true);
-addCard('Why do you like to cook?','¿Por qué te gusta cocinar?',true);
-addCard('Why don’t you like to cook?','¿Por qué no te gusta cocinar?',true);
-addCard('I like to study Spanish because it’s easy','Me gusta estudiar español porque es fácil',true);
-addCard('I like to cook because it’s fun','Me gusta cocinar porque es divertido',true);
-addCard('I don’t like to read because it’s boring','No me gusta leer porque es aburrido',true);
-addCard('I don’t like to draw because it’s difficult','No me gusta dibujar porque es difícil',true);
-addCard('I understand','Entiendo',true);
-addCard('Let’s do something fun today','¡Vamos a hacer algo divertido hoy!',true);
-addCard('Monday','lunes',true);
-addCard('Tuesday','martes',true);
-addCard('Wednesday','miércoles',true);
-addCard('Thursday','jueves',true);
-addCard('a plate','un plato',true);
-addCard('a cup','una taza',true);
-addCard('a wine glass','una copa',true);
-addCard('Could you bring a cup, please?','¿Podría traer una taza, por favor?',true);                 addCard('six','seis',true);
-addCard('seven','siete',true);
-addCard('eight','ocho',true);
-addCard('nine','nueve',true);
-addCard('ten','diez',true);       
-                       }
+  function ensureDemo(){
+  // Если уже есть сохранённые карточки — ничего не делаем
+  if (state.cards.length) return;
+
+  // Старый демо-набор
+  addCard('Hello! Good morning','¡Hola! Buenos días',true);
+  addCard('Thank you','¡Gracias!',true);
+  addCard('How much is this?','¿Cuánto cuesta esto?',true);
+  addCard('The salad','La ensalada',true);
+  addCard('The soup','La sopa',true);
+  addCard('a menu','un menú',true);
+  addCard('a napkin','una servilleta',true);
+  addCard('Thank you very much','¡Muchas gracias!',true);
+  addCard('Goodbye!','¡Adiós!',true);
+  addCard('Very well, and you?','Muy bien, ¿y tú?',true);
+  addCard('a fork','un tenedor',true);
+  addCard('a spoon','una cuchara',true);
+  addCard('The United States','los Estados Unidos',true);
+  addCard('Wow excellent!','¡Wow! ¡Qué bueno!',true);
+  addCard('Hello, How are you?','Hola, ¿cómo estás?',true);
+  addCard('Yes, of course','Sí, claro',true);
+  addCard('Where are you from?','¿De dónde eres?',true);
+  addCard('A table for two, please','Una mesa para dos, por favor',true);
+  addCard('do sports','hacer deportes',true);
+  addCard('the fish','el pescado',true);
+  addCard('read','leer',true);
+  addCard('write','escribir',true);
+  addCard('I am Max','Yo soy Max',true);
+  addCard('Hello, nice to meet you','Hola, mucho gusto',true);
+  addCard('Welcome!','¡Bienvenidos!',true);
+  addCard('cook','cocinar',true);
+  addCard('I am from Armenia','Yo soy de Armenia',true);
+  addCard('Delicious food','Comida rica',true);
+  addCard('What do you like to do?','¿Qué te gusta hacer?',true);
+  addCard('Welcome to the restaurant!','¡Bienvenido(a) al restaurante!',true);
+  addCard('What is your name?','¿Cómo te llamas?',true);
+  addCard('Could you bring a menu please?','¿Podría traer un menú, por favor?',true);
+  addCard('What do you like to cook?','¿Qué te gusta cocinar?',true);
+  addCard('My name is Victor (I am called)','Me llamo Victor',true);
+  addCard('See you later','Hasta luego',true);
+  addCard('You are welcome (It is nothing)','De nada',true);
+  addCard('I like your Spanish','¡Me gusta tu español!',true);
+  addCard('I am from the United States','Yo soy de los Estados Unidos',true);
+  addCard('Mexico','México',true);
+  addCard('Canada','Canadá',true);
+  addCard('France','Francia',true);
+  addCard('How many people are in your party? (How many are you?)','¿Cuántos son?',true);
+  addCard('Do you want anything else?','¿Desea algo más?',true);
+  addCard('I would recommend the pasta','Le recomendaría la pasta',true);
+  addCard('What would you like? (What (do you) desire?)','¿Qué desea?',true);
+  addCard('I like to read (write)','Me gusta leer (escribir)',true);
+  addCard('What do you recommend? (me)','¿Qué me recomienda?',true);
+  addCard('I like to do yoga (sports)','Me gusta hacer yoga (deportes)',true);
+  addCard('Can you say that again, please?','¿Puedes decirlo de nuevo, por favor?',true);
+  addCard('What don’t you like to do?','¿Qué no te gusta hacer?',true);
+  addCard('I don’t like to do yoga','No me gusta hacer yoga',true);
+  addCard('I don’t like to read (write)','No me gusta leer (escribir)',true);
+  addCard('Oh, I see','Ah, ya veo',true);
+  addCard('I’m sorry, what did you say?','Disculpa, ¿qué dijiste?',true);
+  addCard('draw','dibujar',true);
+  addCard('paint','pintar',true);
+  addCard('study Spanish','estudiar español',true);
+  addCard('sing','cantar',true);
+  addCard('I like to study Spanish','Me gusta estudiar español',true);
+  addCard('I like to draw and paint','Me gusta dibujar y pintar',true);
+  addCard('I like to cook and do sports','Me gusta cocinar y hacer deportes',true);
+  addCard('Can you repeat that again, please?','¿Puedes repetir eso de nuevo, por favor?',true);
+  addCard('That’s wonderful!','¡Maravilloso!',true);
+  addCard('Я восхищен','Encantado',true);
+  addCard('What do you like to do in your free time?','¿Qué te gusta hacer en tu tiempo libre?',true);
+  addCard('I like to sing in my free time','En mi tiempo libre me gusta cantar',true);
+  addCard('Delicious','¡Delicioso!',true);
+  addCard('Brilliant','¡Brillante!',true);
+  addCard('fun','divertido',true);
+  addCard('boring','aburrido',true);
+  addCard('easy','fácil',true);
+  addCard('difficult','difícil',true);
+  addCard('Why do you like to cook?','¿Por qué te gusta cocinar?',true);
+  addCard('Why don’t you like to cook?','¿Por qué no te gusta cocinar?',true);
+  addCard('I like to study Spanish because it’s easy','Me gusta estudiar español porque es fácil',true);
+  addCard('I like to cook because it’s fun','Me gusta cocinar porque es divertido',true);
+  addCard('I don’t like to read because it’s boring','No me gusta leer porque es aburrido',true);
+  addCard('I don’t like to draw because it’s difficult','No me gusta dibujar porque es difícil',true);
+  addCard('I understand','Entiendo',true);
+  addCard('Let’s do something fun today','¡Vamos a hacer algo divertido hoy!',true);
+  addCard('Monday','lunes',true);
+  addCard('Tuesday','martes',true);
+  addCard('Wednesday','miércoles',true);
+  addCard('Thursday','jueves',true);
+  addCard('a plate','un plato',true);
+  addCard('a cup','una taza',true);
+  addCard('a wine glass','una copa',true);
+  addCard('Could you bring a cup, please?','¿Podría traer una taza, por favor?',true);
+  addCard('six','seis',true);
+  addCard('seven','siete',true);
+  addCard('eight','ocho',true);
+  addCard('nine','nueve',true);
+  addCard('ten','diez',true);
+  addCard('Are you free?','¿Estás libre?', true);
+  addCard('The museum','el museo', true);
+  addCard('Nothing special','Nada especial', true);
+  addCard('Sunday','domingo', true);
+  addCard('The store','la tienda', true);
+  addCard('What are you doing on Tuesday?','¿Qué haces el martes?', true);
+  addCard('I’m free on Friday','Estoy libre el viernes', true);
+  addCard('Friday','viernes', true);
+  addCard('I’m going to work','Voy a trabajar', true);
+  addCard('Nice to see you again!','¡Qué gusto verte de nuevo!', true);
+  addCard('Are you busy on Friday?','¿Estás ocupado el viernes?', true);
+  addCard('The beach','la playa', true);
+  addCard('Saturday','sábado', true);
+  addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
+  addCard('The restaurant','el restaurante', true);
+  addCard('Week','semana', true);
+  addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
+  addCard('The movie theater','el cine', true);
+  addCard('Well said!','¡Bien dicho!', true);
+  addCard('What are you doing on Monday?','¿Qué haces el lunes?', true);
+
+  // Перемешиваем весь демо-набор
+  for (let i = state.cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [state.cards[i], state.cards[j]] = [state.cards[j], state.cards[i]];
+  }
+
+  // Текущую карточку выставим на первую после тасовки
+  state.currentId = state.cards[0]?.id || null;
+  saveState();
+}
+
 
   function computeProgress(){ const total=state.cards.length;
     const learnedCount=state.cards.filter(c=>c.learned===true||c.box>=4).length;
@@ -750,7 +786,7 @@ function applyTheme(t){
   if(t.card2) setVar('--cardGrad2', t.card2);
 }
 
-// 15 вариантов фона (bg1 сверху → bg0 снизу)
+// 27 вариантов фона (bg1 сверху → bg0 снизу)
 const BG_PRESETS = [
   {name:'Default',         bg0:'#0b0a12', bg1:'#141126'},
   {name:'Deep Blue',       bg0:'#091735', bg1:'#0a0f2d'},
@@ -767,8 +803,22 @@ const BG_PRESETS = [
   {name:'Velvet Plum',     bg0:'#2b1f2f', bg1:'#3c2a45'},
   {name:'Teal Dawn',       bg0:'#18323a', bg1:'#234550'},
   {name:'Slate Dawn',      bg0:'#1f2430', bg1:'#2c3450'},
+  {name:'Obsidian',        bg0:'#090a0d', bg1:'#111218'},
+  {name:'Cobalt Night',    bg0:'#0b1a33', bg1:'#152845'},
+  {name:'Aurora Teal',     bg0:'#0a1e21', bg1:'#153238'},
+  {name:'Ruby Noir',       bg0:'#1a0b0f', bg1:'#291218'},
+  {name:'Moss Deep',       bg0:'#0b1510', bg1:'#132018'},
+  {name:'Steel Navy',      bg0:'#0c1624', bg1:'#142236'},
+  {name:'Coffee Char',     bg0:'#18100b', bg1:'#24160f'},
+  {name:'Space Gray',      bg0:'#0b0e13', bg1:'#161b22'},
+  {name:'Wine Dusk',       bg0:'#1e0f17', bg1:'#2a1822'},
+  {name:'Cyan Twilight',   bg0:'#0a1c24', bg1:'#112a37'},
+  {name:'Orchid Smoke',    bg0:'#2c2448', bg1:'#3b3261'},
+  {name:'Jade Midnight',   bg0:'#0a1c18', bg1:'#142823'},
 ];
 
+
+// 27 вариантов карточек (card1 сверху → card2 снизу)
 const CARD_PRESETS = [
   {name:'Default',     card1:'#2a2452', card2:'#211c40'},
   {name:'Blue Steel',  card1:'#2b3a52', card2:'#1d293d'},
@@ -780,12 +830,25 @@ const CARD_PRESETS = [
   {name:'Brown',       card1:'#453a22', card2:'#352a18'},
   {name:'Indigo',      card1:'#27334f', card2:'#1d2540'},
   {name:'Blue',        card1:'#2a2f52', card2:'#202644'},
-  {name:'Lilac Glow',   card1:'#3b3670', card2:'#2d2960'},
-  {name:'Skywash',      card1:'#38537a', card2:'#2a3f62'},
-  {name:'Seafoam',      card1:'#2d5056', card2:'#224347'},
-  {name:'Warm Taupe',   card1:'#4a3a2d', card2:'#3a2c22'},
-  {name:'Stone Gray',   card1:'#4a4a56', card2:'#343545'},
+  {name:'Lilac Glow',  card1:'#3b3670', card2:'#2d2960'},
+  {name:'Skywash',     card1:'#38537a', card2:'#2a3f62'},
+  {name:'Seafoam',     card1:'#2d5056', card2:'#224347'},
+  {name:'Warm Taupe',  card1:'#4a3a2d', card2:'#3a2c22'},
+  {name:'Stone Gray',  card1:'#4a4a56', card2:'#343545'},
+  {name:'Sapphire',     card1:'#2b3f7a', card2:'#1e2d5c'},
+  {name:'Amberwood',    card1:'#5a3b1f', card2:'#3e2a16'},
+  {name:'Mint',         card1:'#2e5a56', card2:'#224743'},
+  {name:'Rosewood',     card1:'#5a2c3a', card2:'#3e1f2a'},
+  {name:'Obsidian',     card1:'#2e2f36', card2:'#1f2026'},
+  {name:'Copper',       card1:'#6a3f2b', card2:'#4a2c1e'},
+  {name:'Gunmetal',     card1:'#3a4350', card2:'#2a313b'},
+  {name:'Navy Glass',   card1:'#2a3656', card2:'#1f2942'},
+  {name:'Grape',        card1:'#4a2f6a', card2:'#35214d'},
+  {name:'Ocean',        card1:'#2b4960', card2:'#1f3647'},
+  {name:'Charcoal Blue',card1:'#39414f', card2:'#2a303a'},
+  {name:'Sunset Plum',  card1:'#5c3a58', card2:'#412a40'},
 ];
+
 
 
 function buildPalettes(){
