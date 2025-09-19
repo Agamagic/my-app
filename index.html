@@ -248,23 +248,27 @@ html{ background: var(--bg1, #0b0a12); }
 }
 
 .bottom-nav{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: var(--nav-h);
-  /* фон как у таб-бара iOS: полупрозрачный + сильный blur */
-  background: rgba(20, 20, 24, .82);
+  position: fixed; left: 0; right: 0; bottom: 0;
+
+  /* бар занимает и свою высоту, и safe-area — фон прячется под home-indicator */
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+
+  /* внутренний отступ оставляем только для safe-area, без дополнительного «воздуха» */
+  padding: 0 8px env(safe-area-inset-bottom);
+
+  /* фон/блюр как у iOS таб-бара */
+  background: rgba(20,20,24,.82);
   backdrop-filter: saturate(1.2) blur(18px);
   -webkit-backdrop-filter: saturate(1.2) blur(18px);
   border-top: .5px solid rgba(255,255,255,.18);
 
   display: flex;
-  align-items: stretch;          /* ← кнопки «прижаты» к бару по высоте */
-  justify-content: stretch;
-  gap: 0;
-
-  padding: 0 6px env(safe-area-inset-bottom); /* без лишнего воздуха — прилипло к низу */
+  align-items: center;          /* центруем контент по вертикали самой полосы */
+  justify-content: space-around;
   z-index: 1000;
 }
+
 
 /* сами кнопки — как в App Store: иконка сверху, подпись снизу, без фона */
 .bottom-nav .nav-btn{
