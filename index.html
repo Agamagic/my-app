@@ -216,7 +216,58 @@
   .ios-switch input:disabled ~ .switch-text{opacity:.6}
   .ios-switch .switch-text{opacity:.9}
   
-  
+  /* ---- Bottom nav (фиксируем и красим под тему) ---- */
+.bottom-nav{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: stretch;
+  gap: 0;
+
+  /* фон в той же гамме, слегка прозрачный + блюр */
+  background:
+    linear-gradient(180deg, rgba(20,17,38,.88), rgba(20,17,38,.72));
+  backdrop-filter: saturate(1.1) blur(8px);
+
+  /* граница сверху */
+  border-top: 1px solid rgba(255,255,255,.06);
+
+  /* safe-area снизу, чтобы не упереться в home-indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+
+.bottom-nav .nav-btn{
+  appearance: none; border: 0; background: transparent;
+  color: var(--text);
+  font: 600 13px/1.1 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  padding: 10px 6px 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; cursor: pointer;
+}
+.bottom-nav .nav-btn .ico{ font-size: 18px; line-height: 1 }
+.bottom-nav .nav-btn:active{ transform: translateY(1px); opacity: .9 }
+.bottom-nav .nav-btn.active{
+  /* лёгкая подсветка активной вкладки */
+  text-shadow: 0 0 18px rgba(162,91,255,.45);
+}
+
+/* На iOS убираем синий tap-highlight */
+.bottom-nav .nav-btn, .iconbtn, .chip, .btn { -webkit-tap-highlight-color: transparent; }
+
+/* ---- Контенту отдаём место под нижний бар ---- */
+.wrap{
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-h) + 16px) !important;
+  min-height: 100dvh; /* уже есть, оставляем на всякий */
+}
+
+/* (опционально) тонкую подложку под home-indicator рисуем только если нет бара */
+@supports (selector(body:has(.bottom-nav))){
+  body:has(.bottom-nav)::after{ display:none; }
+}
+
   
 </style>
 
