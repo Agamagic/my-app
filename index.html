@@ -229,7 +229,6 @@ body{
 /* верх/низ под «чёлку» и домашнюю полоску */
 body{
   padding-top: env(safe-area-inset-top);
-  padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
 }
 
 
@@ -240,15 +239,7 @@ body{
 html{ background: var(--bg1, #0b0a12); }
 /* body — не трогаем: у него уже есть красивый градиент выше */
 
-/* 3) Докрашиваем зону под home-indicator (safe-area bottom) */
-body::after{
-  content:"";
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: env(safe-area-inset-bottom);
-  background: inherit;      /* продолжение фона body (градиент/цвет) */
-  pointer-events: none;     /* не мешает кликам */
-}
+
 
 /* --- Bottom Nav (iOS-like) --- */
 .bottom-nav{
@@ -257,10 +248,11 @@ body::after{
   background:rgba(20,17,38,.92);
   backdrop-filter:saturate(1.1) blur(10px);
   border-top:1px solid rgba(255,255,255,.10);
-  display:flex; align-items:center; justify-content:space-around;
-  padding:10px 12px calc(env(safe-area-inset-bottom) + 10px); /* ↑ больше воздуха сверху */
+  display:flex; align-items:center; justify-content:space-evenly;
+  padding:6px 12px calc(env(safe-area-inset-bottom) + 6px); /* ↓ меньше «воздуха» */
   z-index:1000;
 }
+
 .bottom-nav .nav-btn{
   appearance:none;
   border:1px solid rgba(255,255,255,.18);     /* рамка */
@@ -1261,6 +1253,7 @@ let BIG_DICT_ES2EN = Object.create(null);
   btnRepeat.addEventListener('click', applyRepeat);
   tabFlash.addEventListener('click', ()=>switchTab('flash'));
   tabQuiz .addEventListener('click', ()=>switchTab('quiz'));
+
   function openSettings(){
   buildPalettes();
   if (settingsListWrap && elList && elList.parentElement !== settingsListWrap) {
@@ -1273,16 +1266,16 @@ let BIG_DICT_ES2EN = Object.create(null);
 }
 
 btnSettings.addEventListener('click', openSettings);
-navSettings?.addEventListener('click', openSettings);   // нижняя кнопка делает то же
+navSettings?.addEventListener('click', openSettings);
 
-  function openAdd(){
+function openAdd(){
   document.activeElement?.blur?.();
   dlgAdd.showModal();
   dlgAdd.focus({ preventScroll:true });
 }
 
 btnAdd?.addEventListener('click', openAdd);
-navAdd?.addEventListener('click', openAdd);            // нижняя кнопка «Add»
+navAdd?.addEventListener('click', openAdd);
 
   addFront.addEventListener('input', scheduleAutoTranslate);
 addBack .addEventListener('input', scheduleAutoTranslate);
