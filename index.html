@@ -35,7 +35,7 @@
     font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
   }
   :root{ /* рядом с другими переменными */
-  --nav-h: 64px; /* высота нижней панели */
+  --nav-h: 72px; /* высота нижней панели */
 }
 .wrap{
   max-width:460px;
@@ -44,6 +44,8 @@
   min-height:100dvh;            /* вместо костылей с .app-root */
   display:flex;
   flex-direction:column;
+  overflow:auto;                     /* скролл внутри приложения */
+  -webkit-overflow-scrolling:touch;  /* плавный скролл на iOS */
 }
   header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg, rgba(20,17,38,.9), rgba(20,17,38,.6), transparent);backdrop-filter:saturate(1.1) blur(6px);margin:0 -16px 10px;padding:10px 16px 6px}
   .bar{height:8px;background:#2a2446;border-radius:999px;overflow:hidden;box-shadow:var(--shadow-soft);margin-bottom:10px}
@@ -212,7 +214,17 @@
 .ios-switch .switch-text { opacity:.9; }
 
 /* — PWA безопасные отступы для iPhone — */
-html, body { height: 100%; }
+html, body{
+  height:100%;
+  overscroll-behavior:none;        /* отключаем «пружину» */
+}
+
+body{
+  /* оставляем твои существующие стили + добавляем: */
+  position:fixed;                  /* фиксируем страницу во вьюпорте */
+  inset:0;
+  overflow:hidden;                 /* без прокрутки всей страницы */
+}
 
 /* верх/низ под «чёлку» и домашнюю полоску */
 body{
@@ -244,19 +256,31 @@ body::after{
   height:var(--nav-h);
   background:rgba(20,17,38,.92);
   backdrop-filter:saturate(1.1) blur(10px);
-  border-top:1px solid rgba(255,255,255,.08);
+  border-top:1px solid rgba(255,255,255,.10);
   display:flex; align-items:center; justify-content:space-around;
-  padding:0 8px env(safe-area-inset-bottom);
+  padding:10px 12px calc(env(safe-area-inset-bottom) + 10px); /* ↑ больше воздуха сверху */
   z-index:1000;
 }
 .bottom-nav .nav-btn{
-  appearance:none; border:none; background:transparent; color:#c6c2df;
-  display:flex; flex-direction:column; align-items:center; gap:2px;
+  appearance:none;
+  border:1px solid rgba(255,255,255,.18);     /* рамка */
+  background:rgba(255,255,255,.06);           /* лёгкий фон */
+  color:#e9e7ff;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
   font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial;
-  padding:6px 10px; border-radius:12px; cursor:pointer;
+  padding:10px 14px;                           /* больше «мяса» */
+  border-radius:16px;                          /* круглее */
+  cursor:pointer;
+  transition:transform .12s var(--ease), background .15s var(--ease), border-color .15s;
 }
-.bottom-nav .nav-btn .ico{ font-size:20px; line-height:1; }
-.bottom-nav .nav-btn.active{ color:#ffffff; background:rgba(255,255,255,.06); }
+.bottom-nav .nav-btn:active{ transform:scale(.97); }
+.bottom-nav .nav-btn.active{
+  background:rgba(140,122,255,.16);
+  border-color:rgba(140,122,255,.55);
+  color:#fff;
+}
+.bottom-nav .nav-btn .ico{ font-size:18px; line-height:1; }
+
 
 </style>
 </head>
@@ -1237,27 +1261,28 @@ let BIG_DICT_ES2EN = Object.create(null);
   btnRepeat.addEventListener('click', applyRepeat);
   tabFlash.addEventListener('click', ()=>switchTab('flash'));
   tabQuiz .addEventListener('click', ()=>switchTab('quiz'));
-  btnSettings.addEventListener('click', ()=>{
-  buildPalettes();                                  // палитры
+  function openSettings(){
+  buildPalettes();
   if (settingsListWrap && elList && elList.parentElement !== settingsListWrap) {
-    settingsListWrap.appendChild(elList);           // переносим #list в модалку
+    settingsListWrap.appendChild(elList);
   }
   renderList();
-
-  // ❗ Открываем настройки с закрытым списком
   state.showList = false;
   applyListVisibility();
-
   dlgSettings.showModal();
-});
-
-  if (btnAdd) {
-  btnAdd.addEventListener('click', () => {
-    document.activeElement?.blur?.();        // гасим возможный фокус
-    dlgAdd.showModal();                       // открыть диалог
-    dlgAdd.focus({ preventScroll: true });    // фокус на диалог
-  });
 }
+
+btnSettings.addEventListener('click', openSettings);
+navSettings?.addEventListener('click', openSettings);   // нижняя кнопка делает то же
+
+  function openAdd(){
+  document.activeElement?.blur?.();
+  dlgAdd.showModal();
+  dlgAdd.focus({ preventScroll:true });
+}
+
+btnAdd?.addEventListener('click', openAdd);
+navAdd?.addEventListener('click', openAdd);            // нижняя кнопка «Add»
 
   addFront.addEventListener('input', scheduleAutoTranslate);
 addBack .addEventListener('input', scheduleAutoTranslate);
@@ -1367,6 +1392,11 @@ function loadOfflineDictFromEmbedded(){
   const learnedCount=tmp.filter(c=>c.learned||c.box>=4).length;
   console.log('Progress test (2):', learnedCount);
 }
+
+document.addEventListener('touchmove', (e)=>{
+  if (!e.target.closest('dialog')) e.preventDefault();
+}, { passive:false });
+
 })();
 </script>
 
