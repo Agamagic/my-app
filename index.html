@@ -69,13 +69,14 @@
     overflow:auto; -webkit-overflow-scrolling:touch;
   }
 
-  /* Header */
+  /* ---------- Header (ИСПРАВЛЕНО: не вложенный header) ---------- */
   header{
     position:sticky; top:0; z-index:5;
     background:linear-gradient(180deg, rgba(20,17,38,.9), rgba(20,17,38,.6), transparent);
     backdrop-filter:saturate(1.1) blur(6px);
     margin:0 -16px 10px;
-    padding:10px calc(16px + env(safe-area-inset-right)) 6px calc(16px + env(safe-area-inset-left));
+    padding:10px calc(24px + env(safe-area-inset-right)) 6px
+             calc(24px + env(safe-area-inset-left));
   }
 
   .bar{height:8px;background:#2a2446;border-radius:999px;overflow:hidden;box-shadow:var(--shadow-soft);margin-bottom:10px}
@@ -86,9 +87,10 @@
 
   .iconbtn{
     appearance:none; border:none; background:#251f44; color:var(--text);
-    padding:12px 14px; border-radius:12px; box-shadow:var(--shadow-soft);
-    font-size:17px;                 /* чуть меньше, чтобы не упираться */
-    min-width:44px; min-height:44px;/* комфортная зона тапа */
+    width:46px; height:46px;              /* фиксированный квадрат */
+    padding:0; border-radius:12px; box-shadow:var(--shadow-soft);
+    display:flex; align-items:center; justify-content:center; /* чёткий центр */
+    line-height:1; font-size:18px;        /* чуть крупнее */
     cursor:pointer; transition:transform .15s var(--ease), opacity .15s var(--ease);
   }
   .iconbtn:active{ transform:scale(.95) }
@@ -115,11 +117,11 @@
   }
   .tabbar .dirbtn:active{ transform:scale(.95) }
 
-  /* Карточка — выше и длиннее */
+  /* ---------- Карточка ---------- */
   .cardwrap{ margin-top:14px }
   .card3d{
     position:relative;
-    height:min(70vh,420px); /* было 64vh/360px */
+    height:min(70vh,420px); /* выше и длиннее */
     aspect-ratio:3/4;
     margin:0 auto; border-radius:var(--radius);
     perspective:1200px; overflow:visible;
