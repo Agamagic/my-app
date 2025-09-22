@@ -335,135 +335,9 @@ dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
       <button class="chip" type="button" id="btnAddClose" autofocus>Закрыть</button>
     </div>
 
-    <div class="footnote">Онлайн-перевод через LibreTranslate. Если сети нет — офлайн шаблоны (&gt;1000 типовых фраз) и мини-словарь.</div>
+    <div class="footnote">Онлайн-перевод через LibreTranslate. Требуется интернет.</div>
   </form>
 </dialog>
-
-<!-- Встроенный офлайн-словарь EN→ES -->
-<script type="application/json" id="offlineDictENES">
-[
-  {"en":"make a reservation","es":"hacer una reserva"},
-  {"en":"boarding pass","es":"tarjeta de embarque"},
-  {"en":"window seat","es":"asiento de ventana"},
-  {"en":"how much does it cost?","es":"¿cuánto cuesta?"},
-  {"en":"call an ambulance","es":"llame a una ambulancia"},
-  {"en":"water without ice","es":"agua sin hielo"},
-  {"en":"i would like a coffee","es":"quisiera un café"},
-  {"en":"where is the train station?","es":"¿dónde está la estación de tren?"},
-  {"en":"do you accept credit cards?","es":"¿acepta tarjetas de crédito?"},
-  {"en":"the bill, please","es":"la cuenta, por favor"},
-  {"en":"a room for two nights","es":"una habitación por dos noches"},
-  {"en":"my passport is lost","es":"he perdido mi pasaporte"},
-  {"en":"i am allergic to nuts","es":"soy alérgico a los frutos secos"},
-  {"en":"can you speak slower?","es":"¿puede hablar más despacio?"},
-  {"en":"where is the nearest pharmacy?","es":"¿dónde está la farmacia más cercana?"},
-  {"en":"cheers!","es":"¡salud!"},
-  {"en":"i need a doctor","es":"necesito un doctor"},
-  {"en":"left or right?","es":"¿izquierda o derecha?"},
-  {"en":"open from nine to five","es":"abierto de nueve a cinco"},
-  {"en":"how long does it take?","es":"¿cuánto tiempo tarda?"},
-  {"en":"good morning","es":"buenos días"},
-  {"en":"good night","es":"buenas noches"},
-  {"en":"good afternoon","es":"buenas tardes"},
-  {"en":"thank you very much","es":"muchas gracias"},
-  {"en":"you are welcome","es":"de nada"},
-  {"en":"excuse me","es":"disculpe"},
-  {"en":"i am sorry","es":"lo siento"},
-  {"en":"what time is it?","es":"¿qué hora es?"},
-  {"en":"where are you from?","es":"¿de dónde eres?"},
-  {"en":"i am from spain","es":"soy de españa"},
-  {"en":"i am from russia","es":"soy de rusia"},
-  {"en":"i am from the united states","es":"soy de estados unidos"},
-  {"en":"nice to meet you","es":"mucho gusto"},
-  {"en":"see you later","es":"hasta luego"},
-  {"en":"see you tomorrow","es":"hasta mañana"},
-  {"en":"see you soon","es":"hasta pronto"},
-  {"en":"what is your name?","es":"¿cómo te llamas?"},
-  {"en":"my name is john","es":"me llamo juan"},
-  {"en":"how are you?","es":"¿cómo estás?"},
-  {"en":"i am fine","es":"estoy bien"},
-  {"en":"i am tired","es":"estoy cansado"},
-  {"en":"i am hungry","es":"tengo hambre"},
-  {"en":"i am thirsty","es":"tengo sed"},
-  {"en":"i am cold","es":"tengo frío"},
-  {"en":"i am hot","es":"tengo calor"},
-  {"en":"i am happy","es":"estoy feliz"},
-  {"en":"i am sad","es":"estoy triste"},
-  {"en":"i am sick","es":"estoy enfermo"},
-  {"en":"i am busy","es":"estoy ocupado"},
-  {"en":"i am free","es":"estoy libre"},
-  {"en":"i am ready","es":"estoy listo"},
-  {"en":"i need help","es":"necesito ayuda"},
-  {"en":"call the police","es":"llame a la policía"},
-  {"en":"call a doctor","es":"llame a un doctor"},
-  {"en":"call a taxi","es":"llame un taxi"},
-  {"en":"where is the airport?","es":"¿dónde está el aeropuerto?"},
-  {"en":"where is the hotel?","es":"¿dónde está el hotel?"},
-  {"en":"where is the bus stop?","es":"¿dónde está la parada de autobús?"},
-  {"en":"where is the train station?","es":"¿dónde está la estación de tren?"},
-  {"en":"where is the subway?","es":"¿dónde está el metro?"},
-  {"en":"where is the bank?","es":"¿dónde está el banco?"},
-  {"en":"where is the pharmacy?","es":"¿dónde está la farmacia?"},
-  {"en":"where is the supermarket?","es":"¿dónde está el supermercado?"},
-  {"en":"where is the restaurant?","es":"¿dónde está el restaurante?"},
-  {"en":"where is the bathroom?","es":"¿dónde está el baño?"},
-  {"en":"how much is a ticket?","es":"¿cuánto cuesta un boleto?"},
-  {"en":"how much is this?","es":"¿cuánto cuesta esto?"},
-  {"en":"how much is the room per night?","es":"¿cuánto cuesta la habitación por noche?"},
-  {"en":"how much is the bill?","es":"¿cuánto es la cuenta?"},
-  {"en":"how much is the coffee?","es":"¿cuánto cuesta el café?"},
-  {"en":"i would like water","es":"quisiera agua"},
-  {"en":"i would like tea","es":"quisiera té"},
-  {"en":"i would like beer","es":"quisiera cerveza"},
-  {"en":"i would like wine","es":"quisiera vino"},
-  {"en":"i would like breakfast","es":"quisiera desayuno"},
-  {"en":"i would like lunch","es":"quisiera almuerzo"},
-  {"en":"i would like dinner","es":"quisiera cena"},
-  {"en":"a table for two, please","es":"una mesa para dos, por favor"},
-  {"en":"a table for four, please","es":"una mesa для cuatro, por favor"},
-  {"en":"the menu, please","es":"el menú, por favor"},
-  {"en":"the bill, please","es":"la cuenta, por favor"},
-  {"en":"with sugar","es":"con azúcar"},
-  {"en":"without sugar","es":"sin azúcar"},
-  {"en":"with milk","es":"con leche"},
-  {"en":"without milk","es":"sin leche"},
-  {"en":"with ice","es":"con hielo"},
-  {"en":"without ice","es":"sin hielo"},
-  {"en":"one ticket, please","es":"un boleto, por favor"},
-  {"en":"two tickets, please","es":"dos boletos, por favor"},
-  {"en":"i have a reservation","es":"tengo una reserva"},
-  {"en":"i lost my passport","es":"perdí mi pasaporte"},
-  {"en":"my luggage is lost","es":"mi equipaje está perdido"},
-  {"en":"can you help me?","es":"¿puede ayudarme?"},
-  {"en":"can you repeat that?","es":"¿puede repetir eso?"},
-  {"en":"can you speak english?","es":"¿habla inglés?"},
-  {"en":"i do not understand","es":"no entiendo"},
-  {"en":"i do not know","es":"no sé"},
-  {"en":"what does this mean?","es":"¿qué significa esto?"},
-  {"en":"i want to go to the airport","es":"quiero ir al aeropuerto"},
-  {"en":"i want to go to the hotel","es":"quiero ir al hotel"},
-  {"en":"i want to go to the city center","es":"quiero ir al centro"},
-  {"en":"i want to go to the beach","es":"quiero ir a la playa"},
-  {"en":"i need a taxi","es":"necesito un taxi"},
-  {"en":"i need a bus","es":"necesito un autobús"},
-  {"en":"i need a train","es":"necesito un tren"},
-  {"en":"i need a room","es":"necesito una habitación"},
-  {"en":"i need a doctor","es":"necesito un doctor"},
-  {"en":"i need a pharmacy","es":"necesito una farmacia"},
-  {"en":"i need medicine","es":"necesito medicina"},
-  {"en":"i am allergic to penicillin","es":"soy alérgico a la penicilina"},
-  {"en":"i have a fever","es":"tengo fiebre"},
-  {"en":"i have a headache","es":"tengo dolor de cabeza"},
-  {"en":"i have a stomachache","es":"tengo dolor de estómago"},
-  {"en":"i have no cash","es":"no tengo efectivo"},
-  {"en":"i need an atm","es":"necesito un cajero automático"},
-  {"en":"can i pay with card?","es":"¿puedo pagar con tarjeta?"},
-  {"en":"do you accept visa?","es":"¿acepta visa?"},
-  {"en":"open from monday to friday","es":"abierto de lunes a viernes"},
-  {"en":"closed on sunday","es":"cerrado el domingo"}
-  ]
-</script>
-
 <script>
 (() => {
   const STORAGE_KEY = 'minimal-flashcards-html-v1';
@@ -1031,47 +905,6 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
     'https://libretranslate.com/translate'
   ];
 
-  const NOUNS = {
-    "airport":{es:"aeropuerto",g:"m"},"station":{es:"estación",g:"f"},"bus":{es:"autobús",g:"m"},"train":{es:"tren",g:"m"},
-    "taxi":{es:"taxi",g:"m"},"subway":{es:"metro",g:"m"},"ticket":{es:"billete",g:"m"},"toilet":{es:"baño",g:"m"},
-    "bathroom":{es:"baño",g:"m"},"pharmacy":{es:"farmacia",g:"f"},"hospital":{es:"hospital",g:"m"},"doctor":{es:"médico",g:"m"},
-    "police":{es:"policía",g:"f"},"hotel":{es:"hotel",g:"m"},"room":{es:"habitación",g:"f"},"key":{es:"llave",g:"f"},
-    "reception":{es:"recepción",g:"f"},"restaurant":{es:"restaurante",g:"m"},"menu":{es:"menú",g:"m"},"breakfast":{es:"desayuno",g:"m"},
-    "lunch":{es:"almuerzo",g:"m"},"dinner":{es:"cena",g:"f"},"water":{es:"agua",g:"f"},"coffee":{es:"café",g:"m"},
-    "tea":{es:"té",g:"m"},"beer":{es:"cerveza",g:"f"},"wine":{es:"vino",g:"m"},"bread":{es:"pan",g:"m"},
-    "bottle":{es:"botella",g:"f"},"glass":{es:"vaso",g:"m"},"plate":{es:"plato",g:"m"},"fork":{es:"tenedor",g:"m"},
-    "knife":{es:"cuchillo",g:"m"},"spoon":{es:"cuchara",g:"f"},"napkin":{es:"servilleta",g:"f"},"salt":{es:"sal",g:"f"},
-    "sugar":{es:"azúcar",g:"m"},"pepper":{es:"pimienta",g:"f"},"oil":{es:"aceite",g:"m"},"bill":{es:"cuenta",g:"f"},
-    "receipt":{es:"recibo",g:"m"},"discount":{es:"descuento",g:"m"},"market":{es:"mercado",g:"m"},"supermarket":{es:"supermercado",g:"m"},
-    "store":{es:"tienda",g:"f"},"shop":{es:"tienda",g:"f"},"cash":{es:"efectivo",g:"m"},"card":{es:"tarjeta",g:"f"},
-    "bank":{es:"banco",g:"m"},"atm":{es:"cajero",g:"m"},"map":{es:"mapa",g:"m"},"street":{es:"calle",g:"f"},
-    "center":{es:"centro",g:"m"},"beach":{es:"playa",g:"f"},"park":{es:"parque",g:"m"},"museum":{es:"museo",g:"m"},
-    "ticket office":{es:"taquilla",g:"f"},"platform":{es:"andén",g:"m"},"gate":{es:"puerta",g:"f"},"passport":{es:"pasaporte",g:"m"},
-    "phone":{es:"teléfono",g:"m"},"charger":{es:"cargador",g:"m"},"adapter":{es:"adaptador",g:"m"},"wifi":{es:"wifi",g:"m"},
-    "password":{es:"contraseña",g:"f"},"reservation":{es:"reserva",g:"f"},"table":{es:"mesa",g:"f"},"chair":{es:"silla",g:"f"},
-    "left":{es:"izquierda",g:"f"},"right":{es:"derecha",g:"f"},"airport bus":{es:"autobús del aeropuerto",g:"m"},
-    "entrance":{es:"entrada",g:"f"},"exit":{es:"salida",g:"f"},"pharmacy on duty":{es:"farmacia de guardia",g:"f"}
-  };
-
-  const FIXED_EN2ES = {
-    "hello":"hola","hi":"hola","good morning":"buenos días","good afternoon":"buenas tardes","good evening":"buenas noches",
-    "good night":"buenas noches","please":"por favor","thank you":"gracias","thanks":"gracias","you are welcome":"de nada",
-    "sorry":"lo siento","excuse me":"disculpe","yes":"sí","no":"no","help":"ayuda","i don’t understand":"no entiendo",
-    "i don't understand":"no entiendo","do you speak english?":"¿habla inglés?","i speak a little spanish":"hablo un poco de español",
-    "how much is this?":"¿cuánto cuesta esto?","where is the bathroom?":"¿dónde está el baño?","the bill, please":"la cuenta, por favor",
-    "one ticket, please":"un billete, por favor","water, please":"agua, por favor","i would like":"me gustaría","i need help":"necesito ayuda"
-  };
-
-  const SMALL_DICT_EN2ES = {
-    "where is the bathroom?":"¿dónde está el baño?","the bill, please":"la cuenta, por favor","water":"agua","coffee":"café",
-    "tea":"té","bread":"pan","help":"ayuda","i need help":"necesito ayuda","i would like a coffee":"me gustaría un café",
-    "one ticket please":"un billete, por favor"
-  };
-  const SMALL_DICT_ES2EN = Object.fromEntries(Object.entries(SMALL_DICT_EN2ES).map(([k,v])=>[v,k]));
-
-  let BIG_DICT_EN2ES = Object.create(null);
-  let BIG_DICT_ES2EN = Object.create(null);
-
   async function translateOnline(q, dir, signal){
     const payload = {
       q,
@@ -1089,94 +922,6 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
       }catch(e){ /* try next */ }
     }
     throw new Error('online_fail');
-  }
-
-  function enNumberToEs(s){
-    const m = s.match(/^(\d{1,3})(\s+)?(euros|euro)?$/);
-    if(!m) return null;
-    const n = +m[1]; const tail = m[3] ? ' euros' : '';
-    const specials = {0:'cero',1:'uno',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho',9:'nueve',10:'diez',11:'once',12:'doce',13:'trece',14:'catorce',15:'quince',20:'веинте',30:'тринта',40:'куарента',50:'синкuenta',60:'сесента',70:'сетента',80:'очента',90:'новента',100:'cien'};
-    if(specials[n]) return specials[n] + (tail? ' euros':'');
-    if(n<20) return specials[n]+(tail?' euros':'');
-    if(n<100){ const tens=Math.floor(n/10)*10; const ones=n%10; return specials[tens] + (ones? ' y '+specials[ones]:'') + (tail?' euros':''); }
-    if(n===100) return 'cien' + (tail?' euros':'');
-    return null;
-  }
-
-  function art(word, g){
-    if(g==='m') return 'el ' + word;
-    if(g==='f' && /^[aá]gua|^[aá]guila|^[aá]rpa|^[aá]rea/.test(word)) return 'el ' + word;
-    return 'la ' + word;
-  }
-  function findNoun(en){
-    const k = en.toLowerCase().trim();
-    if(NOUNS[k]) return NOUNS[k];
-    const noArticle = k.replace(/^(the|a|an)\s+/,'').trim();
-    return NOUNS[noArticle] || null;
-  }
-  function templateEN2ES(s){
-    let t = s.trim().toLowerCase().replace(/\s+/g,' ');
-    if(FIXED_EN2ES[t]) return FIXED_EN2ES[t];
-    const num = enNumberToEs(t);
-    if(num) return num;
-    let m = t.match(/^where\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
-    if(m){
-      const n = findNoun(m[2]); if(n) return `¿dónde está ${art(n.es,n.g)}?`;
-    }
-    m = t.match(/^do\s+you\s+have\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
-    if(m){
-      const n = findNoun(m[2]); if(n) return `¿tiene ${art(n.es,n.g)}?`;
-    }
-    m = t.match(/^i\s+(need|want|would like)\s+(the\s+|a\s+|an\s+)?(.+)\.?$/);
-    if(m){
-      const verb = m[1]==='need' ? 'necesito' : (m[1]==='want' ? 'quiero' : 'me gustaría');
-      const n = findNoun(m[3]);
-      if(n) return `${verb} ${art(n.es,n.g)}`;
-    }
-    m = t.match(/^(one|two|three|four|five)\s+(.+)\s+please\.?$/);
-    if(m){
-      const numMap = {one:'un',two:'dos',three:'tres',four:'cuatro',five:'cinco'};
-      const n = findNoun(m[2]); if(n) return `${numMap[m[1]]} ${n.es}, por favor`;
-    }
-    m = t.match(/^how\s+much\s+is\s+(the\s+|a\s+|an\s+)?(.+)\??$/);
-    if(m){
-      const n = findNoun(m[2]); if(n) return `¿cuánto cuesta ${art(n.es,n.g)}?`;
-    }
-    m = t.match(/^turn\s+(left|right)\.?$/);
-    if(m){
-      const dir = m[1]==='left' ? 'izquierda' : 'derecha';
-      return `gire a la ${dir}`;
-    }
-    m = t.match(/^good\s+(morning|afternoon|evening|night)\.?$/);
-    if(m){
-      return {morning:'buenos días',afternoon:'buenas tardes',evening:'buenas noches',night:'buenas noches'}[m[1]];
-    }
-    return null;
-  }
-  function templateES2EN(s){
-    const t = s.trim().toLowerCase();
-    for(const [k,v] of Object.entries(FIXED_EN2ES)){ if(v===t) return k; }
-    if(/^¿dónde está /.test(t)) return 'where is it?';
-    if(/^¿tiene /.test(t)) return 'do you have it?';
-    if(/^gire a la /.test(t)) return 'turn (left/right)';
-    return null;
-  }
-
-  function offlineTranslate(text, dir){
-    const t = (text||'').trim().toLowerCase();
-    if(!t) return '';
-    if(dir==='EN2ES'){
-      if (BIG_DICT_EN2ES[t])   return BIG_DICT_EN2ES[t];
-      if (SMALL_DICT_EN2ES[t]) return SMALL_DICT_EN2ES[t];
-      const byTpl = templateEN2ES(t); if(byTpl) return byTpl;
-      const rm = t.replace(/\b(the|a|an)\b/g,'').trim();
-      const n = findNoun(rm); if(n) return n.es;
-    } else {
-      if (BIG_DICT_ES2EN[t])   return BIG_DICT_ES2EN[t];
-      if (SMALL_DICT_ES2EN[t]) return SMALL_DICT_ES2EN[t];
-      const byTpl = templateES2EN(t); if(byTpl) return byTpl;
-    }
-    return t;
   }
 
   function setTrStatus(msg){ trStatus.innerHTML = msg? `<span>${msg}</span>` : '<span class="spinner"></span>'; }
@@ -1213,10 +958,10 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
       const online = await translateOnline(fromEl.value, dir, trAbort.signal);
       toEl.value = online;
       setTrStatus('Готово ✓');
-    }catch(e){
-      toEl.value = offlineTranslate(fromEl.value, dir);
-      setTrStatus('Оффлайн перевод');
-    }finally{
+   } catch(e){
+  setTrStatus('Нет сети / сервис недоступен');
+} finally {
+
       btnTranslate.disabled = false;
       if(trAbort?.cleanup) trAbort.cleanup();
       trAbort = null;
@@ -1359,30 +1104,6 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
       saveState();
     } else {
       applyTheme(state.theme);
-    }
-
-    loadOfflineDictFromEmbedded();
-
-    function loadOfflineDictFromEmbedded(){
-      try{
-        const tag = document.getElementById('offlineDictENES');
-        if(!tag) return;
-        const txt = (tag.textContent || '').trim();
-        if(!txt) return;
-
-        const arr = JSON.parse(txt);
-        const m = Object.create(null);
-        for (const row of arr){
-          const en = String(row.en||'').trim().toLowerCase();
-          const es = String(row.es||'').trim().toLowerCase();
-          if (en && es) m[en] = es;
-        }
-        BIG_DICT_EN2ES = m;
-        BIG_DICT_ES2EN = Object.fromEntries(Object.entries(BIG_DICT_EN2ES).map(([en,es])=>[es,en]));
-        console.log('Offline dict loaded:', Object.keys(BIG_DICT_EN2ES).length, 'pairs');
-      }catch(e){
-        console.warn('Embedded offline dict parse error', e);
-      }
     }
 
     ensureDemo();
