@@ -1091,57 +1091,17 @@
     dlgAdd.close();
   });
 
-  /** 🎮 Mini-game: Собери фразу (расширено) */
+  /** 🎮 Mini-game: Собери фразу (EN → ES, без «перемешать», автопереход/автосброс) */
 function openGame() {
   if (!state.cards || state.cards.length === 0) { alert('Нет карточек'); return; }
 
-  // Случайная карточка из всего списка
-  const rndIdx = Math.floor(Math.random() * state.cards.length);
-  const card = state.cards[rndIdx];
-
-  const isEN2ES   = (state.direction === 'EN2ES');
-  const promptTxt = isEN2ES ? card.front : card.back;   // подсказка (что перевести)
-  const targetTxt = isEN2ES ? card.back  : card.front;  // что нужно собрать
-
-  // Целевые слова
-  const targetWords = tokenizePhrase(targetTxt);
-
-  // Общие «мусорные» слова
-  const COMMON_DISTRACTORS = isEN2ES
-    ? ['el','la','los','las','un','una','unos','unas','y','de','a','en','con','por','para','muy','que','yo','tú']
-    : ['the','a','an','to','of','in','on','with','for','and','very','that','I','you'];
-
-  // Слова с целевой стороны из других карточек
-  const otherSideText = state.cards
-    .filter(c => c.id !== card.id)
-    .map(c => isEN2ES ? c.back : c.front)
-    .join(' ');
-  const otherWords = tokenizePhrase(otherSideText);
-
-  // Уберём слова, которые уже есть в цели (чтобы были именно отвлекающие)
-  const targetSet = new Set(targetWords.map(w => w.toLowerCase()));
-  const distractPool = [
-    ...COMMON_DISTRACTORS.filter(w => !targetSet.has(w.toLowerCase())),
-    ...otherWords.filter(w => !targetSet.has(w.toLowerCase()))
-  ];
-
-  // 5–10 отвлекающих (зависит от длины цели)
-  const distractorCount = Math.min(10, Math.max(5, Math.ceil(targetWords.length * 0.8)));
-  const distractors = pickRandomWords(distractPool, distractorCount);
-
-  // Итоговые кандидаты
-  const candidates = shuffleArray([...targetWords, ...distractors]);
-
-  // Диалог
+  // Диалог — общий контейнер, раунды будем менять внутри
   const dlg = document.createElement('dialog');
   dlg.className = 'modal';
   dlg.innerHTML = `
     <form method="dialog" class="modal" style="min-width:min(92vw,520px)">
-      <div class="meta" style="margin-bottom:6px">Собери перевод для:</div>
-      <div style="font-weight:700;line-height:1.4;margin-bottom:8px">
-        “${escapeHtml(promptTxt)}”
-        <span class="pill" style="margin-left:8px">→ ${isEN2ES ? 'ES' : 'EN'}</span>
-      </div>
+      <div class="meta" style="margin-bottom:6px">Собери перевод на испанском для:</div>
+      <div id="gamePrompt" style="font-weight:700;line-height:1.4;margin-bottom:8px">…</div>
 
       <div id="gameTarget"
            style="min-height:52px;padding:10px;border:1px dashed #666;margin-bottom:10px;border-radius:8px;line-height:1.6"></div>
@@ -1153,7 +1113,6 @@ function openGame() {
         <div style="display:flex;gap:8px">
           <button class="chip" type="button" id="btnUndo">⟲ Отменить</button>
           <button class="chip" type="button" id="btnClear">Очистить</button>
-          <button class="chip" type="button" id="btnShuffle">Перемешать</button>
         </div>
         <div style="display:flex;gap:8px">
           <button class="chip" type="button" id="btnCheck">Проверить</button>
@@ -1168,23 +1127,32 @@ function openGame() {
   `;
   document.body.appendChild(dlg);
 
-  const gameWords  = dlg.querySelector('#gameWords');
-  const gameTarget = dlg.querySelector('#gameTarget');
-  const btnUndo    = dlg.querySelector('#btnUndo');
-  const btnClear   = dlg.querySelector('#btnClear');
-  const btnShuffle = dlg.querySelector('#btnShuffle');
-  const btnCheck   = dlg.querySelector('#btnCheck');
+  const elPrompt  = dlg.querySelector('#gamePrompt');
+  const gameWords = dlg.querySelector('#gameWords');
+  const gameTarget= dlg.querySelector('#gameTarget');
+  const btnUndo   = dlg.querySelector('#btnUndo');
+  const btnClear  = dlg.querySelector('#btnClear');
+  const btnCheck  = dlg.querySelector('#btnCheck');
 
-  const picked = [];
+  // Текущее состояние раунда
+  let currentCard = null;
+  let targetTxt   = '';
+  let picked      = [];
 
   function redrawPicked(){
     gameTarget.textContent = picked.join(' ');
     gameTarget.style.borderColor = '#666';
   }
 
-  function renderCandidates(list){
+  function resetAll(){
+    picked = [];
+    redrawPicked();
+    Array.from(gameWords.children).forEach(btn => { btn.disabled = false; btn.style.opacity = 1; });
+  }
+
+  function renderCandidates(words){
     gameWords.innerHTML = '';
-    list.forEach(w => {
+    words.forEach(w => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'chip';
@@ -1199,15 +1167,44 @@ function openGame() {
     });
   }
 
-  function resetAll(){
-    picked.length = 0;
-    redrawPicked();
-    Array.from(gameWords.children).forEach(btn => {
-      btn.disabled = false;
-      btn.style.opacity = 1;
-    });
+  // Один раунд: случайная карточка, цель — ВСЕГДА испанская сторона (back)
+  function startRound(){
+    const rndIdx = Math.floor(Math.random() * state.cards.length);
+    currentCard = state.cards[rndIdx];
+
+    const promptTxt = currentCard.front;   // показываем английскую подсказку
+    targetTxt       = currentCard.back;    // собираем ИСПАНСКОЕ
+
+    // целевые слова
+    const targetWords = tokenizePhrase(targetTxt);
+
+    // отвлекающие — базовые испанские + слова из других карточек (испанская сторона)
+    const COMMON_ES = ['el','la','los','las','un','una','unos','unas','y','o','de','a','en','con','por','para','muy','que','yo','tú'];
+    const otherSideText = state.cards
+      .filter(c => c.id !== currentCard.id)
+      .map(c => c.back)
+      .join(' ');
+    const otherWords = tokenizePhrase(otherSideText);
+
+    const targetSet = new Set(targetWords.map(w => w.toLowerCase()));
+    const distractPool = [
+      ...COMMON_ES.filter(w => !targetSet.has(w.toLowerCase())),
+      ...otherWords.filter(w => !targetSet.has(w.toLowerCase()))
+    ];
+
+    const distractorCount = Math.min(10, Math.max(5, Math.ceil(targetWords.length * 0.8)));
+    const distractors = pickRandomWords(distractPool, distractorCount);
+
+    // Перемешивание исходного набора КНОПОК (UI-кнопки «Перемешать» больше нет)
+    const candidates = shuffleArray([...targetWords, ...distractors]);
+
+    // Обновляем UI раунда
+    elPrompt.textContent = `“${escapeHtml(promptTxt)}”`;
+    renderCandidates(candidates);
+    resetAll();
   }
 
+  // Кнопки управления
   btnUndo.addEventListener('click', ()=>{
     if (!picked.length) return;
     const last = picked.pop();
@@ -1218,46 +1215,32 @@ function openGame() {
 
   btnClear.addEventListener('click', resetAll);
 
-  btnShuffle.addEventListener('click', ()=>{
-    // перемешиваем доступные кнопки, уже выбранные остаются
-    const enabled = Array.from(gameWords.children).filter(x=>!x.disabled).map(x=>x.textContent);
-    const used    = Array.from(gameWords.children).filter(x=>x.disabled).map(x=>x.textContent);
-    const mixed   = shuffleArray(enabled);
-    gameWords.innerHTML = '';
-    // сначала выбранные (задизейбленные)
-    used.forEach(t=>{
-      const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t;
-      b.disabled=true; b.style.opacity=.55; gameWords.appendChild(b);
-    });
-    // затем оставшиеся
-    mixed.forEach(t=>{
-      const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t;
-      b.addEventListener('click', ()=>{ picked.push(t); redrawPicked(); b.disabled=true; b.style.opacity=.55; });
-      gameWords.appendChild(b);
-    });
-  });
-
   btnCheck.addEventListener('click', ()=>{
     const assembled = normalizeForCheck(picked.join(' '));
     const target    = normalizeForCheck(targetTxt);
     const ok = (assembled === target);
     gameTarget.style.borderColor = ok ? 'limegreen' : '#ff4d6d';
-    if (!ok) {
+    if (ok) {
+      // короткая «галочка» и новый раунд
+      setTimeout(startRound, 450);
+    } else {
+      // тряска и автосброс
       gameTarget.animate(
         [{transform:'translateX(0)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],
         {duration:220, easing:'ease-out'}
       );
+      setTimeout(resetAll, 260);
     }
   });
 
-  renderCandidates(candidates);
-  redrawPicked();
-
   dlg.addEventListener('close',()=>dlg.remove());
   dlg.showModal();
+
+  // первый раунд
+  startRound();
 }
 
-/* ---------- helpers для игры (без <script>!) ---------- */
+/* ---------- helpers для игры ---------- */
 function tokenizePhrase(s){
   if (!s) return [];
   const cleaned = String(s)
@@ -1295,7 +1278,6 @@ function shuffleArray(arr){
   return a;
 }
 
-// привязываем кнопку
 btnGame?.addEventListener('click', openGame);
 
 
