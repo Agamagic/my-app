@@ -1099,32 +1099,30 @@ function openGame() {
   const dlg = document.createElement('dialog');
   dlg.className = 'modal';
   dlg.innerHTML = `
-    <form method="dialog" class="modal" style="min-width:min(92vw,520px)">
-      <div class="meta" style="margin-bottom:6px">Собери перевод на испанском для:</div>
-      <div id="gamePrompt" style="font-weight:700;line-height:1.4;margin-bottom:8px">…</div>
+  <form method="dialog" class="modal" style="min-width:min(92vw,520px)">
+    <div class="meta" style="margin-bottom:6px">Собери перевод на испанском для:</div>
+    <div id="gamePrompt" style="font-weight:700;line-height:1.4;margin-bottom:8px">…</div>
 
-      <div id="gameTarget"
-           style="min-height:52px;padding:10px;border:1px dashed #666;margin-bottom:10px;border-radius:8px;line-height:1.6"></div>
+    <div id="gameTarget"
+         style="min-height:52px;padding:10px;border:1px dashed #666;margin-bottom:10px;border-radius:8px;line-height:1.6"></div>
 
-      <div class="meta" style="margin:8px 0 6px">Выберите слова по порядку:</div>
-      <div id="gameWords" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div class="meta" style="margin:8px 0 6px">Выберите слова по порядку:</div>
+    <div id="gameWords" style="display:flex;flex-wrap:wrap;gap:6px"></div>
 
-      <div class="actions" style="display:flex;gap:8px;justify-content:space-between;margin-top:12px">
-        <div style="display:flex;gap:8px">
-          <button class="chip" type="button" id="btnUndo">⟲ Отменить</button>
-          <button class="chip" type="button" id="btnClear">Очистить</button>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="chip" type="button" id="btnCheck">Проверить</button>
-          <button class="chip" value="cancel">Закрыть</button>
-        </div>
-      </div>
+    <!-- вертикальный стек кнопок -->
+    <div class="actions"
+         style="display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:14px">
+      <button class="chip" type="button" id="btnUndo"   style="width:100%">Отменить</button>
+      <button class="chip" type="button" id="btnClear"  style="width:100%">Очистить</button>
+      <button class="chip" type="button" id="btnCheck"  style="width:100%;
+        background:linear-gradient(180deg,#1e9a66,#148c5c);color:#fff;-webkit-text-fill-color:#fff;">
+        Проверить
+      </button>
+      <button class="chip" value="cancel"               style="width:100%">Закрыть</button>
+    </div>
+  </form>
+`;
 
-      <div class="footnote" style="margin-top:8px">
-        Проверка без учёта регистра, двойных пробелов и пунктуации.
-      </div>
-    </form>
-  `;
   document.body.appendChild(dlg);
 
   const elPrompt  = dlg.querySelector('#gamePrompt');
