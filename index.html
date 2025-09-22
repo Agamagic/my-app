@@ -548,7 +548,7 @@
     addCard('Yes, let’s go!', '¡Sí, vamos!', true);
     addCard('I can’t, sorry', 'No puedo, lo siento', true);
     addCard('Another day then!', '¡Será otro día!', true);
-    addCard('Are you free Friday afternoon?', '¿Estás libre el viernes en la tarde?', true);
+    addCard('Are you free on Friday afternoon?', '¿Estás libre el viernes en la tarde?', true);
     addCard('Oh, really?', '¿A poco?', true);
     addCard('And at night?', '¿Y en la noche?', true);
     addCard('Ok!', '¡Va!', true);
@@ -1099,18 +1099,19 @@ function openGame() {
   const dlg = document.createElement('dialog');
   dlg.className = 'modal';
   dlg.innerHTML = `
-  <form method="dialog" class="modal" style="padding:12px;max-width:100vw;overflow-x:hidden">
-    <!-- узкая «карточка» как у dlgAdd + голубой кант -->
+  <form method="dialog" class="modal"
+        style="min-width:auto;width:auto;max-width:100vw;padding:12px;overflow-x:hidden">
     <div id="gameSheet"
          style="
-           width:min(92vw,360px);
+           width:min(88vw,320px);
            margin:0 auto;
            padding:14px;
            border-radius:16px;
            background:linear-gradient(180deg,#1b1638,#191532);
            box-shadow:
-             0 0 0 2px rgba(140,122,255,.95),        /* голубой кант */
-             0 12px 28px rgba(0,0,0,.45);            /* мягкая тень */
+             0 0 0 2px rgba(140,122,255,.95),
+             0 12px 28px rgba(0,0,0,.45);
+           overflow-x:hidden;
          ">
       <h3 style="margin:0 0 10px">Собери фразу</h3>
 
@@ -1121,32 +1122,28 @@ function openGame() {
       <div id="gameTarget"
            style="
              width:100%;
-             min-height:46px;
-             padding:10px;
+             min-height:40px;
+             padding:8px 10px;
              border:1px dashed #666;
-             margin:0 0 10px;
+             margin:0 0 8px;
              border-radius:10px;
-             line-height:1.5;
+             line-height:1.4;
+             font-size:15px;
              overflow-wrap:anywhere;
            "></div>
 
       <div class="meta" style="margin:8px 0 6px">Выберите слова по порядку:</div>
       <div id="gameWords"
-           style="
-             width:100%;
-             display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
-           "></div>
+           style="width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start"></div>
 
-      <!-- вертикальный список кнопок; "Проверить" — первая и зелёная -->
-      <div class="actions"
-           style="display:flex; flex-direction:column; gap:8px; margin-top:12px">
+      <div class="actions" style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
         <button class="chip" type="button" id="btnCheck"
-                style="width:100%; background:linear-gradient(180deg,#1e9a66,#148c5c); color:#fff; -webkit-text-fill-color:#fff;">
+                style="width:100%;padding:12px;background:linear-gradient(180deg,#1e9a66,#148c5c);color:#fff;-webkit-text-fill-color:#fff">
           Проверить
         </button>
-        <button class="chip" type="button" id="btnUndo"  style="width:100%">Отменить</button>
-        <button class="chip" type="button" id="btnClear" style="width:100%">Очистить</button>
-        <button class="chip" value="cancel"              style="width:100%">Закрыть</button>
+        <button class="chip" type="button" id="btnUndo"  style="width:100%;padding:10px 12px">Отменить</button>
+        <button class="chip" type="button" id="btnClear" style="width:100%;padding:10px 12px">Очистить</button>
+        <button class="chip" value="cancel"              style="width:100%;padding:10px 12px">Закрыть</button>
       </div>
     </div>
   </form>
@@ -1177,22 +1174,30 @@ function openGame() {
     Array.from(gameWords.children).forEach(btn => { btn.disabled = false; btn.style.opacity = 1; });
   }
 
-  function renderCandidates(words){
-    gameWords.innerHTML = '';
-    words.forEach(w => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chip';
-      b.textContent = w;
-      b.addEventListener('click', () => {
-        picked.push(w);
-        redrawPicked();
-        b.disabled = true;
-        b.style.opacity = .55;
-      });
-      gameWords.appendChild(b);
+  function renderCandidates(list){
+  gameWords.innerHTML = '';
+  list.forEach(w => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = w;
+
+    // узкие и переносимые на iPhone
+    b.style.whiteSpace = 'normal';
+    b.style.wordBreak  = 'break-word';
+    b.style.maxWidth   = '100%';
+    b.style.padding    = '8px 10px';
+    b.style.fontSize   = '14px';
+
+    b.addEventListener('click', () => {
+      picked.push(w);
+      redrawPicked();
+      b.disabled = true;
+      b.style.opacity = .55;
     });
-  }
+    gameWords.appendChild(b);
+  });
+}
 
   // Один раунд: случайная карточка, цель — ВСЕГДА испанская сторона (back)
   function startRound(){
