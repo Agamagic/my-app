@@ -49,16 +49,15 @@
 
   /* Контейнер приложения: именно он скроллится */
   .wrap{
-  max-width:460px;
-  margin:0 auto;
-  padding:16px 16px 16px;
-  min-height:100dvh;
-  display:flex; flex-direction:column;
-  overflow:hidden;
-  -webkit-overflow-scrolling:auto;
-  touch-action:none;
-}
-
+    max-width:460px;
+    margin:0 auto;
+    padding:16px 16px 16px;
+    min-height:100dvh;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    -webkit-overflow-scrolling:auto;
+    touch-action:none;
+  }
 
   /* ---------- Header ---------- */
   header{
@@ -138,8 +137,9 @@
   .btn:active{ transform:scale(.95) }
   .btn.green{ background:linear-gradient(180deg,#1e9a66,#148c5c) }
   .btn.blue{  background:linear-gradient(180deg,#3b7bff,#2d68e8) }
-  /* PATCH: цвет текста вынесен в CSS, уберём инлайны */
   .btn.green, .btn.blue { color:#fff; -webkit-text-fill-color:#fff; }
+  /* ➕ стиль для кнопки игры */
+  .btn.purple{ background:linear-gradient(180deg,#8c7aff,#6a5acd); color:#fff; -webkit-text-fill-color:#fff; }
 
   .row{display:flex; gap:8px; align-items:center; margin-top:14px; flex-wrap:wrap}
   .chip{appearance:none; border:none; background:#251f44; color:var(--text); padding:10px 12px; border-radius:999px; cursor:pointer; box-shadow:var(--shadow-soft); font-size:14px}
@@ -166,15 +166,15 @@
   .opts button.wrong{   background:rgba(255,77,109,.18); outline:1px solid rgba(255,77,109,.7) }
 
   dialog{border:none; border-radius:16px; background:#191532; color:var(--text); padding:0; box-shadow:0 20px 80px rgba(0,0,0,.6)}
-dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
-.modal{padding:16px; min-width:min(92vw,420px)}
+  dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
+  .modal{padding:16px; min-width:min(92vw,420px)}
 
- /* ✅ скроллим только список фраз в настройках */
-#settingsListWrap{
-  max-height:60dvh;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
+  /* ✅ скроллим только список фраз в настройках */
+  #settingsListWrap{
+    max-height:60dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
   .modal h3{margin:0 0 10px}
   .modal .row{margin-top:10px}
   .modal input{width:100%; appearance:none; border:none; border-radius:12px; padding:10px 12px; background:#231e46; color:var(--text); outline:none}
@@ -259,9 +259,12 @@ dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
         </div>
       </div>
       <div class="controls">
-        <!-- PATCH: убраны инлайн-стили текста -->
         <button class="btn blue"  id="btnRepeat">↺ Повторить</button>
         <button class="btn green" id="btnLearned">✔ Запомнил</button>
+      </div>
+      <!-- 🎮 Новая кнопка мини-игры -->
+      <div class="controls">
+        <button class="btn purple" id="btnGame">🎮 Игра</button>
       </div>
     </div>
 
@@ -274,7 +277,7 @@ dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
 
   <!-- QUIZ -->
   <section id="viewQuiz" hidden>
-    <div class="quiz" role="group" aria-label="Quiz" aria-describedby="quizMeta"><!-- PATCH: aria-describedby -->
+    <div class="quiz" role="group" aria-label="Quiz" aria-describedby="quizMeta">
       <div class="meta" id="quizMeta">вопрос 0 из 0, правильных 0</div>
       <h3 id="quizPrompt">…</h3>
       <div class="opts" id="quizOpts"></div>
@@ -338,6 +341,7 @@ dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
     <div class="footnote">Онлайн-перевод через LibreTranslate. Требуется интернет.</div>
   </form>
 </dialog>
+
 <script>
 (() => {
   const STORAGE_KEY = 'minimal-flashcards-html-v1';
@@ -386,6 +390,7 @@ dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
   const quizMeta=$('#quizMeta'), quizPrompt=$('#quizPrompt'), quizOpts=$('#quizOpts'), quizRestart=$('#quizRestart');
   const autoTranslate=$('#autoTranslate'), btnTranslate=$('#btnTranslate'), trStatus=$('#trStatus');
   const bgPalette=$('#bgPalette'), cardPalette=$('#cardPalette');
+  const btnGame = $('#btnGame'); /* 🎮 */
 
   /** ---------- App ---------- */
   function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
@@ -398,158 +403,157 @@ dialog::backdrop{background:rgba(0,0,0,.45); backdrop-filter:blur(3px)}
     if (state.cards.length) return;
 
     // ---- Обновлённый ВЕРХНИЙ список ----
-addCard('Hello! Good morning','¡Hola! Buenos días',true);
-addCard('Thank you','¡Gracias!',true);
-addCard('How much is this?','¿Cuánto cuesta esto?',true);
-addCard('The salad','La ensalada',true);
-addCard('The soup','La sopa',true);
-addCard('a menu','un menú',true);
-addCard('a napkin','una servilleta',true);
-addCard('Thank you very much','¡Muchas gracias!',true);
-addCard('Goodbye!','¡Adiós!',true);
-addCard('Very well, and you?','Muy bien, ¿y tú?',true);
-addCard('a fork','un tenedor',true);
-addCard('a spoon','una cuchara',true);
-addCard('The United States','los Estados Unidos',true);
-addCard('Wow, excellent!','¡Guau! ¡Qué bueno!',true);
-addCard('Hello, How are you?','Hola, ¿cómo estás?',true);
-addCard('Yes, of course','Sí, claro',true);
-addCard('Where are you from?','¿De dónde eres?',true);
-addCard('A table for two, please','Una mesa para dos, por favor',true);
-addCard('do sports','hacer deportes',true);
-addCard('the fish','el pescado',true);
-addCard('read','leer',true);
-addCard('write','escribir',true);
-addCard('I am Max','Yo soy Max',true);
-addCard('Hello, nice to meet you','Hola, mucho gusto',true);
-addCard('Welcome!','¡Bienvenidos!',true);
-addCard('cook','cocinar',true);
-addCard('I am from Armenia','Yo soy de Armenia',true);
-addCard('Delicious food','Comida rica',true);
-addCard('What do you like to do?','¿Qué te gusta hacer?',true);
-addCard('Welcome to the restaurant!','¡Bienvenido(a) al restaurante!',true);
-addCard('What is your name?','¿Cómo te llamas?',true);
-addCard('Could you bring a menu please?','¿Podría traer un menú, por favor?',true);
-addCard('What do you like to cook?','¿Qué te gusta cocinar?',true);
-addCard('My name is Victor (I am called)','Me llamo Victor',true);
-addCard('See you later','Hasta luego',true);
-addCard('You are welcome (It is nothing)','De nada',true);
-addCard('I like your Spanish','¡Me gusta tu español!',true);
-addCard('I am from the United States','Yo soy de los Estados Unidos',true);
-addCard('Mexico','México',true);
-addCard('Canada','Canadá',true);
-addCard('France','Francia',true);
-addCard('How many people are in your party? (How many are you?)','¿Cuántos son?',true);
-addCard('Do you want anything else?','¿Desea algo más?',true);
-addCard('I would recommend the pasta','Le recomendaría la pasta',true);
-addCard('What would you like? (What (do you) desire?)','¿Qué desea?',true);
-addCard('I like to read (write)','Me gusta leer (escribir)',true);
-addCard('What do you recommend? (me)','¿Qué me recomienda?',true);
-addCard('I like to do yoga (sports)','Me gusta hacer yoga (deportes)',true);
-addCard('Can you say that again, please?','¿Puedes decirlo de nuevo, por favor?',true);
-addCard('What don’t you like to do?','¿Qué no te gusta hacer?',true);
-addCard('I don’t like to do yoga','No me gusta hacer yoga',true);
-addCard('I don’t like to read (write)','No me gusta leer (escribir)',true);
-addCard('Oh, I see','Ah, ya veo',true);
-addCard('I’m sorry, what did you say?','Disculpa, ¿qué dijiste?',true);
-addCard('draw','dibujar',true);
-addCard('paint','pintar',true);
-addCard('study Spanish','estudiar español',true);
-addCard('sing','cantar',true);
-addCard('I like to study Spanish','Me gusta estudiar español',true);
-addCard('I like to draw and paint','Me gusta dibujar y pintar',true);
-addCard('I like to cook and do sports','Me gusta cocinar y hacer deportes',true);
-addCard('Can you repeat that again, please?','¿Puedes repetir eso de nuevo, por favor?',true);
-addCard('That’s wonderful!','¡Maravilloso!',true);
-addCard('Я восхищен','Encantado',true);
-addCard('What do you like to do in your free time?','¿Qué te gusta hacer en tu tiempo libre?',true);
-addCard('I like to sing in my free time','En mi tiempo libre me gusta cantar',true);
-addCard('Delicious','¡Delicioso!',true);
-addCard('Brilliant','¡Brillante!',true);
-addCard('fun','divertido',true);
-addCard('boring','aburrido',true);
-addCard('easy','fácil',true);
-addCard('difficult','difícil',true);
-addCard('Why do you like to cook?','¿Por qué te gusta cocinar?',true);
-addCard('Why don’t you like to cook?','¿Por qué no te gusta cocinar?',true);
-addCard('I like to study Spanish because it’s easy','Me gusta estudiar español porque es fácil',true);
-addCard('I like to cook because it’s fun','Me gusta cocinar porque es divertido',true);
-addCard('I don’t like to read because it’s boring','No me gusta leer porque es aburrido',true);
-addCard('I don’t like to draw because it’s difficult','No me gusta dibujar porque es difícil',true);
-addCard('I understand','Entiendo',true);
-addCard('Let’s do something fun today','¡Vamos a hacer algo divertido hoy!',true);
-addCard('Monday','lunes',true);
-addCard('Tuesday','martes',true);
-addCard('Wednesday','miércoles',true);
-addCard('Thursday','jueves',true);
-addCard('a plate','un plato',true);
-addCard('a cup','una taza',true);
-addCard('a wine glass','una copa',true);
-addCard('Could you bring a cup, please?','¿Podría traer una taza, por favor?',true);
-addCard('six','seis',true);
-addCard('seven','siete',true);
-addCard('eight','ocho',true);
-addCard('nine','nueve',true);
-addCard('ten','diez',true);
-addCard('Are you free?','¿Estás libre?', true);
-addCard('I\'m going to the museum with my friend(s)','Voy al museo con mi(s) amigo(s)', true);
-addCard('Nothing special','Nada especial', true);
-addCard('Sunday','domingo', true);
-addCard('The store','la tienda', true);
-addCard('What are you doing on Tuesday?','¿Qué haces el martes?', true);
-addCard('I’m free on Friday','Estoy libre el viernes', true);
-addCard('Friday','viernes', true);
-addCard('I’m going to work','Voy a trabajar', true);
-addCard('Nice to see you again!','¡Qué gusto verte de nuevo!', true);
-addCard('Are you busy on Friday?','¿Estás ocupado el viernes?', true);
-addCard('The beach','la playa', true);
-addCard('Saturday','sábado', true);
-addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
-addCard('The restaurant','el restaurante', true);
-addCard('Week','semana', true);
-addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
-addCard('Well said!','¡Bien dicho!', true);
-addCard('What are you doing on Monday?','¿Qué haces el lunes?', true);
-addCard('See you soon','¡Hasta pronto!',true);
-addCard('Hello! How\'s it going?','¡Hola! ¿Cómo te va?',true);
-addCard('Excellent','¡Excelente!',true);
-addCard('a conversation','la conversación',true);
-addCard('Bye','¡Chao!',true);
-addCard('Shall we go for a coffee?','¿Vamos por un café?',true);
-addCard('A pleasure','un placer',true);
-addCard('Wow!','¡Guau!',true);
-addCard('You speak Spanish very well','Hablas muy bien español',true);
-addCard('Germany','Alemania',true);
-addCard('England','Inglaterra',true);
-addCard('Where are you going?','¿Adónde vas?',true);
-addCard('Where are you going now?','¿Adónde vas ahora?',true);
-addCard('Perfect','¡Perfecto!',true);
-addCard('I\'m going to the store','Voy a la tienda',true);
-addCard('I\'m going to the movie theatre with my family','Voy al cine con mi familia',true);
-addCard('I\'m going to the restaurant','Voy al restaurante',true);
-addCard('You go to the conversation','¡Vas a la conversación!',true);
-addCard('Would you like to order?', '¿Quiere ordenar?', true);
-addCard('A salad, please', 'Una ensalada, por favor', true);
-addCard('A hamburger, please', 'Una hamburguesa, por favor', true);
-addCard('See you!', '¡Nos vemos!', true);
-addCard('A sandwich, please', 'Un sándwich, por favor', true);
-addCard('A soup, please', 'Una sopa, por favor', true);
-addCard('Three tacos and two burritos, please', 'Tres tacos y dos burritos, por favor', true);
-addCard('Where are you going on Saturday?', '¿Adónde vas el sábado?', true);
-addCard('Whoa!', '¡Órale!', true);
-addCard('That’s great', '¡Qué bien!', true);
-addCard('Let’s go to the beach on Sunday?', '¿Vamos a la playa el domingo?', true);
-addCard('Let’s go to the movies on Wednesday?', '¿Vamos al cine el miércoles?', true);
-addCard('Yes, let’s go!', '¡Sí, vamos!', true);
-addCard('I can’t, sorry', 'No puedo, lo siento', true);
-addCard('Another day then!', '¡Será otro día!', true);
-addCard('Are you free Friday afternoon?', '¿Estás libre el viernes en la tarde?', true);
-addCard('Oh, really?', '¿A poco?', true);
-addCard('And at night?', '¿Y en la noche?', true);
-addCard('Ok!', '¡Va!', true);
-addCard('Haha, yes!', '¡Jaja, sí!', true);
-addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true);
-
+    addCard('Hello! Good morning','¡Hola! Buenos días',true);
+    addCard('Thank you','¡Gracias!',true);
+    addCard('How much is this?','¿Cuánto cuesta esto?',true);
+    addCard('The salad','La ensalada',true);
+    addCard('The soup','La sopa',true);
+    addCard('a menu','un menú',true);
+    addCard('a napkin','una servilleta',true);
+    addCard('Thank you very much','¡Muchas gracias!',true);
+    addCard('Goodbye!','¡Adiós!',true);
+    addCard('Very well, and you?','Muy bien, ¿y tú?',true);
+    addCard('a fork','un tenedor',true);
+    addCard('a spoon','una cuchara',true);
+    addCard('The United States','los Estados Unidos',true);
+    addCard('Wow, excellent!','¡Guau! ¡Qué bueno!',true);
+    addCard('Hello, How are you?','Hola, ¿cómo estás?',true);
+    addCard('Yes, of course','Sí, claro',true);
+    addCard('Where are you from?','¿De dónde eres?',true);
+    addCard('A table for two, please','Una mesa para dos, por favor',true);
+    addCard('do sports','hacer deportes',true);
+    addCard('the fish','el pescado',true);
+    addCard('read','leer',true);
+    addCard('write','escribir',true);
+    addCard('I am Max','Yo soy Max',true);
+    addCard('Hello, nice to meet you','Hola, mucho gusto',true);
+    addCard('Welcome!','¡Bienvenidos!',true);
+    addCard('cook','cocinar',true);
+    addCard('I am from Armenia','Yo soy de Armenia',true);
+    addCard('Delicious food','Comida rica',true);
+    addCard('What do you like to do?','¿Qué te gusta hacer?',true);
+    addCard('Welcome to the restaurant!','¡Bienvenido(a) al restaurante!',true);
+    addCard('What is your name?','¿Cómo te llamas?',true);
+    addCard('Could you bring a menu please?','¿Podría traer un menú, por favor?',true);
+    addCard('What do you like to cook?','¿Qué te gusta cocinar?',true);
+    addCard('My name is Victor (I am called)','Me llamo Victor',true);
+    addCard('See you later','Hasta luego',true);
+    addCard('You are welcome (It is nothing)','De nada',true);
+    addCard('I like your Spanish','¡Me gusta tu español!',true);
+    addCard('I am from the United States','Yo soy de los Estados Unidos',true);
+    addCard('Mexico','México',true);
+    addCard('Canada','Canadá',true);
+    addCard('France','Francia',true);
+    addCard('How many people are in your party? (How many are you?)','¿Cuántos son?',true);
+    addCard('Do you want anything else?','¿Desea algo más?',true);
+    addCard('I would recommend the pasta','Le recomendaría la pasta',true);
+    addCard('What would you like? (What (do you) desire?)','¿Qué desea?',true);
+    addCard('I like to read (write)','Me gusta leer (escribir)',true);
+    addCard('What do you recommend? (me)','¿Qué me recomienda?',true);
+    addCard('I like to do yoga (sports)','Me gusta hacer yoga (deportes)',true);
+    addCard('Can you say that again, please?','¿Puedes decirlo de nuevo, por favor?',true);
+    addCard('What don’t you like to do?','¿Qué no te gusta hacer?',true);
+    addCard('I don’t like to do yoga','No me gusta hacer yoga',true);
+    addCard('I don’t like to read (write)','No me gusta leer (escribir)',true);
+    addCard('Oh, I see','Ah, ya veo',true);
+    addCard('I’m sorry, what did you say?','Disculpa, ¿qué dijiste?',true);
+    addCard('draw','dibujar',true);
+    addCard('paint','pintar',true);
+    addCard('study Spanish','estudiar español',true);
+    addCard('sing','cantar',true);
+    addCard('I like to study Spanish','Me gusta estudiar español',true);
+    addCard('I like to draw and paint','Me gusta dibujar y pintar',true);
+    addCard('I like to cook and do sports','Me gusta cocinar y hacer deportes',true);
+    addCard('Can you repeat that again, please?','¿Puedes repetir eso de nuevo, por favor?',true);
+    addCard('That’s wonderful!','¡Maravilloso!',true);
+    addCard('Я восхищен','Encantado',true);
+    addCard('What do you like to do in your free time?','¿Qué te gusta hacer en tu tiempo libre?',true);
+    addCard('I like to sing in my free time','En mi tiempo libre me gusta cantar',true);
+    addCard('Delicious','¡Delicioso!',true);
+    addCard('Brilliant','¡Brillante!',true);
+    addCard('fun','divertido',true);
+    addCard('boring','aburrido',true);
+    addCard('easy','fácil',true);
+    addCard('difficult','difícil',true);
+    addCard('Why do you like to cook?','¿Por qué te gusta cocinar?',true);
+    addCard('Why don’t you like to cook?','¿Por qué no te gusta cocinar?',true);
+    addCard('I like to study Spanish because it’s easy','Me gusta estudiar español porque es fácil',true);
+    addCard('I like to cook because it’s fun','Me gusta cocinar porque es divertido',true);
+    addCard('I don’t like to read because it’s boring','No me gusta leer porque es aburrido',true);
+    addCard('I don’t like to draw because it’s difficult','No me gusta dibujar porque es difícil',true);
+    addCard('I understand','Entiendo',true);
+    addCard('Let’s do something fun today','¡Vamos a hacer algo divertido hoy!',true);
+    addCard('Monday','lunes',true);
+    addCard('Tuesday','martes',true);
+    addCard('Wednesday','miércoles',true);
+    addCard('Thursday','jueves',true);
+    addCard('a plate','un plato',true);
+    addCard('a cup','una taza',true);
+    addCard('a wine glass','una copa',true);
+    addCard('Could you bring a cup, please?','¿Podría traer una taza, por favor?',true);
+    addCard('six','seis',true);
+    addCard('seven','siete',true);
+    addCard('eight','ocho',true);
+    addCard('nine','nueve',true);
+    addCard('ten','diez',true);
+    addCard('Are you free?','¿Estás libre?', true);
+    addCard('I\'m going to the museum with my friend(s)','Voy al museo con mi(s) amigo(s)', true);
+    addCard('Nothing special','Nada especial', true);
+    addCard('Sunday','domingo', true);
+    addCard('The store','la tienda', true);
+    addCard('What are you doing on Tuesday?','¿Qué haces el martes?', true);
+    addCard('I’m free on Friday','Estoy libre el viernes', true);
+    addCard('Friday','viernes', true);
+    addCard('I’m going to work','Voy a trabajar', true);
+    addCard('Nice to see you again!','¡Qué gusto verte de nuevo!', true);
+    addCard('Are you busy on Friday?','¿Estás ocupado el viernes?', true);
+    addCard('The beach','la playa', true);
+    addCard('Saturday','sábado', true);
+    addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
+    addCard('The restaurant','el restaurante', true);
+    addCard('Week','semana', true);
+    addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
+    addCard('Well said!','¡Bien dicho!', true);
+    addCard('What are you doing on Monday?','¿Qué haces el lunes?', true);
+    addCard('See you soon','¡Hasta pronto!',true);
+    addCard('Hello! How\'s it going?','¡Hola! ¿Cómo te va?',true);
+    addCard('Excellent','¡Excelente!',true);
+    addCard('a conversation','la conversación',true);
+    addCard('Bye','¡Chao!',true);
+    addCard('Shall we go for a coffee?','¿Vamos por un café?',true);
+    addCard('A pleasure','un placer',true);
+    addCard('Wow!','¡Guau!',true);
+    addCard('You speak Spanish very well','Hablas muy bien español',true);
+    addCard('Germany','Alemania',true);
+    addCard('England','Inglaterra',true);
+    addCard('Where are you going?','¿Adónde vas?',true);
+    addCard('Where are you going now?','¿Adónde vas ahora?',true);
+    addCard('Perfect','¡Perfecto!',true);
+    addCard('I\'m going to the store','Voy a la tienda',true);
+    addCard('I\'m going to the movie theatre with my family','Voy al cine con mi familia',true);
+    addCard('I\'m going to the restaurant','Voy al restaurante',true);
+    addCard('You go to the conversation','¡Vas a la conversación!',true);
+    addCard('Would you like to order?', '¿Quiere ordenar?', true);
+    addCard('A salad, please', 'Una ensalada, por favor', true);
+    addCard('A hamburger, please', 'Una hamburguesa, por favor', true);
+    addCard('See you!', '¡Nos vemos!', true);
+    addCard('A sandwich, please', 'Un sándwich, por favor', true);
+    addCard('A soup, please', 'Una sopa, por favor', true);
+    addCard('Three tacos and two burritos, please', 'Tres tacos y dos burritos, por favor', true);
+    addCard('Where are you going on Saturday?', '¿Adónde vas el sábado?', true);
+    addCard('Whoa!', '¡Órale!', true);
+    addCard('That’s great', '¡Qué bien!', true);
+    addCard('Let’s go to the beach on Sunday?', '¿Vamos a la playa el domingo?', true);
+    addCard('Let’s go to the movies on Wednesday?', '¿Vamos al cine el miércoles?', true);
+    addCard('Yes, let’s go!', '¡Sí, vamos!', true);
+    addCard('I can’t, sorry', 'No puedo, lo siento', true);
+    addCard('Another day then!', '¡Será otro día!', true);
+    addCard('Are you free Friday afternoon?', '¿Estás libre el viernes en la tarde?', true);
+    addCard('Oh, really?', '¿A poco?', true);
+    addCard('And at night?', '¿Y en la noche?', true);
+    addCard('Ok!', '¡Va!', true);
+    addCard('Haha, yes!', '¡Jaja, sí!', true);
+    addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true);
 
     for (let i = state.cards.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -562,7 +566,6 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
   function computeProgress(){
     const total=state.cards.length;
     const learnedCount=state.cards.filter(c=>c.learned===true||c.box>=4).length;
-    /* PATCH: не считаем к повтору явные learned */
     const toRepeat=state.cards.filter(c=>{
       if (c.learned) return false;
       return c.repeat===true||c.hard===true||c.box<=2;
@@ -575,7 +578,7 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
     elProgressFill.style.width = pct+'%';
     elProgressText.textContent = `Прогресс: ${pct}% (${learnedCount}/${total}) | Повторить: ${toRepeat}`;
     const bar = elProgressFill.parentElement;
-    bar.setAttribute('aria-valuenow', String(pct)); /* PATCH: явный target */
+    bar.setAttribute('aria-valuenow', String(pct));
     elCounters.textContent = `Всего: ${total} • Выучено: ${learnedCount} • Повторить: ${toRepeat}`;
   }
   function currentCard(){ if(!state.currentId && state.cards.length) state.currentId=state.cards[0].id; return state.cards.find(c=>c.id===state.currentId)||null; }
@@ -613,7 +616,6 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
 
   let flipped=false;
   function flipCard(force){ flipped = typeof force==='boolean'? force : !flipped; elCard.style.transform = flipped? 'rotateY(180deg)':'rotateY(0deg)'; }
-  /* PATCH: nextCard() без параметров */
   function applyLearned(){ const c=currentCard(); if(!c)return; c.learned=true;c.repeat=false;c.hard=false;c.box=clamp(c.box+1,1,5);c.last=now(); nextCard(); saveState(); refreshProgressUI(); renderList(); }
   function applyRepeat(){ const c=currentCard(); if(!c)return; c.repeat=true;c.hard=true;c.learned=false;c.box=Math.min(c.box,2);c.last=now(); nextCard(); saveState(); refreshProgressUI(); renderList(); }
   function directionLabel(){ return state.direction==='EN2ES'?'EN→ES':'ES→EN'; }
@@ -659,11 +661,9 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
   elBtnDir.addEventListener('click', ()=>{
     state.direction = (state.direction==='EN2ES' ? 'ES2EN' : 'EN2ES');
     elBtnDir.textContent = directionLabel();
-    elBtnDir.setAttribute('aria-label','Направление: ' + directionLabel()); /* PATCH: a11y */
-
+    elBtnDir.setAttribute('aria-label','Направление: ' + directionLabel());
     const c = currentCard(); 
     if (c) setCardTexts(c);
-
     if (state.tab === 'quiz') {
       repaintQuizCurrent();
     }
@@ -959,9 +959,8 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
       toEl.value = online;
       setTrStatus('Готово ✓');
    } catch(e){
-  setTrStatus('Нет сети / сервис недоступен');
-} finally {
-
+      setTrStatus('Нет сети / сервис недоступен');
+   } finally {
       btnTranslate.disabled = false;
       if(trAbort?.cleanup) trAbort.cleanup();
       trAbort = null;
@@ -1092,6 +1091,214 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
     dlgAdd.close();
   });
 
+  /** 🎮 Mini-game: Собери фразу (расширено) */
+function openGame() {
+  if (!state.cards || state.cards.length === 0) { alert('Нет карточек'); return; }
+
+  // Случайная карточка из всего списка
+  const rndIdx = Math.floor(Math.random() * state.cards.length);
+  const card = state.cards[rndIdx];
+
+  const isEN2ES   = (state.direction === 'EN2ES');
+  const promptTxt = isEN2ES ? card.front : card.back;   // подсказка (что перевести)
+  const targetTxt = isEN2ES ? card.back  : card.front;  // что нужно собрать
+
+  // Целевые слова
+  const targetWords = tokenizePhrase(targetTxt);
+
+  // Общие «мусорные» слова
+  const COMMON_DISTRACTORS = isEN2ES
+    ? ['el','la','los','las','un','una','unos','unas','y','de','a','en','con','por','para','muy','que','yo','tú']
+    : ['the','a','an','to','of','in','on','with','for','and','very','that','I','you'];
+
+  // Слова с целевой стороны из других карточек
+  const otherSideText = state.cards
+    .filter(c => c.id !== card.id)
+    .map(c => isEN2ES ? c.back : c.front)
+    .join(' ');
+  const otherWords = tokenizePhrase(otherSideText);
+
+  // Уберём слова, которые уже есть в цели (чтобы были именно отвлекающие)
+  const targetSet = new Set(targetWords.map(w => w.toLowerCase()));
+  const distractPool = [
+    ...COMMON_DISTRACTORS.filter(w => !targetSet.has(w.toLowerCase())),
+    ...otherWords.filter(w => !targetSet.has(w.toLowerCase()))
+  ];
+
+  // 5–10 отвлекающих (зависит от длины цели)
+  const distractorCount = Math.min(10, Math.max(5, Math.ceil(targetWords.length * 0.8)));
+  const distractors = pickRandomWords(distractPool, distractorCount);
+
+  // Итоговые кандидаты
+  const candidates = shuffleArray([...targetWords, ...distractors]);
+
+  // Диалог
+  const dlg = document.createElement('dialog');
+  dlg.className = 'modal';
+  dlg.innerHTML = `
+    <form method="dialog" class="modal" style="min-width:min(92vw,520px)">
+      <div class="meta" style="margin-bottom:6px">Собери перевод для:</div>
+      <div style="font-weight:700;line-height:1.4;margin-bottom:8px">
+        “${escapeHtml(promptTxt)}”
+        <span class="pill" style="margin-left:8px">→ ${isEN2ES ? 'ES' : 'EN'}</span>
+      </div>
+
+      <div id="gameTarget"
+           style="min-height:52px;padding:10px;border:1px dashed #666;margin-bottom:10px;border-radius:8px;line-height:1.6"></div>
+
+      <div class="meta" style="margin:8px 0 6px">Выберите слова по порядку:</div>
+      <div id="gameWords" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+
+      <div class="actions" style="display:flex;gap:8px;justify-content:space-between;margin-top:12px">
+        <div style="display:flex;gap:8px">
+          <button class="chip" type="button" id="btnUndo">⟲ Отменить</button>
+          <button class="chip" type="button" id="btnClear">Очистить</button>
+          <button class="chip" type="button" id="btnShuffle">Перемешать</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="chip" type="button" id="btnCheck">Проверить</button>
+          <button class="chip" value="cancel">Закрыть</button>
+        </div>
+      </div>
+
+      <div class="footnote" style="margin-top:8px">
+        Проверка без учёта регистра, двойных пробелов и пунктуации.
+      </div>
+    </form>
+  `;
+  document.body.appendChild(dlg);
+
+  const gameWords  = dlg.querySelector('#gameWords');
+  const gameTarget = dlg.querySelector('#gameTarget');
+  const btnUndo    = dlg.querySelector('#btnUndo');
+  const btnClear   = dlg.querySelector('#btnClear');
+  const btnShuffle = dlg.querySelector('#btnShuffle');
+  const btnCheck   = dlg.querySelector('#btnCheck');
+
+  const picked = [];
+
+  function redrawPicked(){
+    gameTarget.textContent = picked.join(' ');
+    gameTarget.style.borderColor = '#666';
+  }
+
+  function renderCandidates(list){
+    gameWords.innerHTML = '';
+    list.forEach(w => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = w;
+      b.addEventListener('click', () => {
+        picked.push(w);
+        redrawPicked();
+        b.disabled = true;
+        b.style.opacity = .55;
+      });
+      gameWords.appendChild(b);
+    });
+  }
+
+  function resetAll(){
+    picked.length = 0;
+    redrawPicked();
+    Array.from(gameWords.children).forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = 1;
+    });
+  }
+
+  btnUndo.addEventListener('click', ()=>{
+    if (!picked.length) return;
+    const last = picked.pop();
+    redrawPicked();
+    const btn = Array.from(gameWords.children).find(x => x.textContent === last && x.disabled);
+    if (btn){ btn.disabled = false; btn.style.opacity = 1; }
+  });
+
+  btnClear.addEventListener('click', resetAll);
+
+  btnShuffle.addEventListener('click', ()=>{
+    // перемешиваем доступные кнопки, уже выбранные остаются
+    const enabled = Array.from(gameWords.children).filter(x=>!x.disabled).map(x=>x.textContent);
+    const used    = Array.from(gameWords.children).filter(x=>x.disabled).map(x=>x.textContent);
+    const mixed   = shuffleArray(enabled);
+    gameWords.innerHTML = '';
+    // сначала выбранные (задизейбленные)
+    used.forEach(t=>{
+      const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t;
+      b.disabled=true; b.style.opacity=.55; gameWords.appendChild(b);
+    });
+    // затем оставшиеся
+    mixed.forEach(t=>{
+      const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t;
+      b.addEventListener('click', ()=>{ picked.push(t); redrawPicked(); b.disabled=true; b.style.opacity=.55; });
+      gameWords.appendChild(b);
+    });
+  });
+
+  btnCheck.addEventListener('click', ()=>{
+    const assembled = normalizeForCheck(picked.join(' '));
+    const target    = normalizeForCheck(targetTxt);
+    const ok = (assembled === target);
+    gameTarget.style.borderColor = ok ? 'limegreen' : '#ff4d6d';
+    if (!ok) {
+      gameTarget.animate(
+        [{transform:'translateX(0)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],
+        {duration:220, easing:'ease-out'}
+      );
+    }
+  });
+
+  renderCandidates(candidates);
+  redrawPicked();
+
+  dlg.addEventListener('close',()=>dlg.remove());
+  dlg.showModal();
+}
+
+/* ---------- helpers для игры (без <script>!) ---------- */
+function tokenizePhrase(s){
+  if (!s) return [];
+  const cleaned = String(s)
+    .replace(/[\u2013\u2014]/g, '-')   // длинные тире → дефис
+    .replace(/\s+/g,' ')
+    .trim();
+  return cleaned
+    .split(' ')
+    .map(w => w.replace(/^[,.\-–—!?:;"'()¡¿]+|[,.\-–—!?:;"'()¡¿]+$/g,''))
+    .filter(Boolean);
+}
+function normalizeForCheck(s){
+  return String(s)
+    .toLowerCase()
+    .replace(/[,.\-–—!?:;"'()¡¿]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function pickRandomWords(pool, count){
+  if (!Array.isArray(pool) || pool.length === 0) return [];
+  const uniq = Array.from(new Set(pool.map(w => w.trim()).filter(Boolean)));
+  const out = [];
+  while (out.length < Math.min(count, uniq.length)) {
+    const w = uniq[Math.floor(Math.random() * uniq.length)];
+    if (!out.includes(w)) out.push(w);
+  }
+  return out;
+}
+function shuffleArray(arr){
+  const a = arr.slice();
+  for (let i=a.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// привязываем кнопку
+btnGame?.addEventListener('click', openGame);
+
+
   /** Init */
   function init(){
     const loaded = loadState();
@@ -1135,10 +1342,10 @@ addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true)
 
   /* PATCH: позволяем скролл внутри .wrap/диалогов, блокируем только фоновую пружину */
   document.addEventListener('touchmove', (e)=>{
-  // Разрешаем жесты ТОЛЬКО внутри модалок и их списке
-  if (e.target.closest('#settingsListWrap, dialog')) return;
-  e.preventDefault(); // ⛔️ везде вне настроек — блок
-}, { passive:false });
+    // Разрешаем жесты ТОЛЬКО внутри модалок и их списке
+    if (e.target.closest('#settingsListWrap, dialog')) return;
+    e.preventDefault(); // ⛔️ везде вне настроек — блок
+  }, { passive:false });
 
 })();
 </script>
