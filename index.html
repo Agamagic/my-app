@@ -1115,33 +1115,33 @@ function openGame() {
 
       <div class="meta" style="margin-bottom:6px">Собери перевод на испанском для:</div>
       <div id="gamePrompt"
-           style="font-weight:700;font-size:15px;line-height:1.3;margin-bottom:8px;overflow-wrap:anywhere">…</div>
+           style="font-weight:700;font-size:16px;line-height:1.35;margin-bottom:8px;overflow-wrap:anywhere">…</div>
 
       <div id="gameTarget"
            style="
              width:100%;
-             min-height:34px;
-             padding:6px 8px;
+             min-height:44px;
+             padding:8px 10px;
              border:1px dashed #666;
-             margin:0 0 8px;
+             margin:0 0 10px;
              border-radius:10px;
-             line-height:1.35;
-             font-size:14px;
+             line-height:1.4;
+             font-size:16px;
              overflow-wrap:anywhere;
            "></div>
 
       <div class="meta" style="margin:6px 0 6px">Выберите слова по порядку:</div>
       <div id="gameWords"
-           style="width:100%;display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-start;max-height:40dvh;overflow-y:auto"></div>
+           style="width:100%;display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-start;max-height:56dvh;overflow-y:auto"></div>
 
       <div class="actions" style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
         <button class="chip" type="button" id="btnCheck"
-                style="width:100%;padding:10px;background:linear-gradient(180deg,#1e9a66,#148c5c);color:#fff;-webkit-text-fill-color:#fff;font-size:14px">
+                style="width:100%;padding:12px;background:linear-gradient(180deg,#1e9a66,#148c5c);color:#fff;-webkit-text-fill-color:#fff;font-size:15px">
           Проверить
         </button>
-        <button class="chip" type="button" id="btnUndo"  style="width:100%;padding:8px 10px;font-size:14px">Отменить</button>
-        <button class="chip" type="button" id="btnClear" style="width:100%;padding:8px 10px;font-size:14px">Очистить</button>
-        <button class="chip" value="cancel"              style="width:100%;padding:8px 10px;font-size:14px">Закрыть</button>
+        <button class="chip" type="button" id="btnUndo"  style="width:100%;padding:10px;font-size:15px">Отменить</button>
+        <button class="chip" type="button" id="btnClear" style="width:100%;padding:10px;font-size:15px">Очистить</button>
+        <button class="chip" value="cancel"              style="width:100%;padding:10px;font-size:15px">Закрыть</button>
       </div>
     </div>
   </form>
@@ -1180,13 +1180,14 @@ function openGame() {
     b.className = 'chip';
     b.textContent = w;
 
-    // ещё уже и переносимые
+    // крупнее и повыше, но по-прежнему узкие и переносимые
     b.style.whiteSpace = 'normal';
     b.style.wordBreak  = 'break-word';
     b.style.maxWidth   = '100%';
-    b.style.padding    = '6px 9px';
-    b.style.fontSize   = '13px';
-    b.style.lineHeight = '1.2';
+    b.style.padding    = '10px 12px';
+    b.style.fontSize   = '16px';
+    b.style.lineHeight = '1.25';
+    b.style.minHeight  = '38px';
 
     b.addEventListener('click', () => {
       picked.push(w);
@@ -1197,6 +1198,7 @@ function openGame() {
     gameWords.appendChild(b);
   });
 }
+
 
   // Один раунд: случайная карточка, цель — ВСЕГДА испанская сторона (back)
   function startRound(){
