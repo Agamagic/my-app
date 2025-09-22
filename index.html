@@ -48,18 +48,14 @@
   *{ box-sizing:border-box }
 
   /* Контейнер приложения: именно он скроллится */
- .wrap{
-  max-width:460px;
-  margin:0 auto;
-  padding:16px 16px 16px;
-  min-height:100dvh;
-  display:flex; flex-direction:column;
-
-  /* ⛔️ скролл больше не нужен */
-  overflow:hidden;
-  -webkit-overflow-scrolling:auto;
-  touch-action:none;
-}
+  .wrap{
+    max-width:460px;
+    margin:0 auto;
+    padding:16px 16px 16px;
+    min-height:100dvh;
+    display:flex; flex-direction:column;
+    overflow:auto; -webkit-overflow-scrolling:touch;
+  }
 
   /* ---------- Header ---------- */
   header{
@@ -455,7 +451,7 @@
   {"en":"do you accept visa?","es":"¿acepta visa?"},
   {"en":"open from monday to friday","es":"abierto de lunes a viernes"},
   {"en":"closed on sunday","es":"cerrado el domingo"}
-]
+  ]
 </script>
 
 <script>
@@ -612,7 +608,7 @@ addCard('eight','ocho',true);
 addCard('nine','nueve',true);
 addCard('ten','diez',true);
 addCard('Are you free?','¿Estás libre?', true);
-addCard('The museum','el museo', true);
+addCard('I\'m going to the museum with my friend(s)','Voy al museo con mi(s) amigo(s)', true);
 addCard('Nothing special','Nada especial', true);
 addCard('Sunday','domingo', true);
 addCard('The store','la tienda', true);
@@ -628,7 +624,6 @@ addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
 addCard('The restaurant','el restaurante', true);
 addCard('Week','semana', true);
 addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
-addCard('The movie theater','el cine', true);
 addCard('Well said!','¡Bien dicho!', true);
 addCard('What are you doing on Monday?','¿Qué haces el lunes?', true);
 addCard('See you soon','¡Hasta pronto!',true);
@@ -646,9 +641,30 @@ addCard('Where are you going?','¿Adónde vas?',true);
 addCard('Where are you going now?','¿Adónde vas ahora?',true);
 addCard('Perfect','¡Perfecto!',true);
 addCard('I\'m going to the store','Voy a la tienda',true);
-addCard('I\'m going to the movies','Voy al cine',true);
+addCard('I\'m going to the movie theatre with my family','Voy al cine con mi familia',true);
 addCard('I\'m going to the restaurant','Voy al restaurante',true);
 addCard('You go to the conversation','¡Vas a la conversación!',true);
+addCard('Would you like to order?', '¿Quiere ordenar?', true);
+addCard('A salad, please', 'Una ensalada, por favor', true);
+addCard('A hamburger, please', 'Una hamburguesa, por favor', true);
+addCard('See you!', '¡Nos vemos!', true);
+addCard('A sandwich, please', 'Un sándwich, por favor', true);
+addCard('A soup, please', 'Una sopa, por favor', true);
+addCard('Three tacos and two burritos, please', 'Tres tacos y dos burritos, por favor', true);
+addCard('Where are you going on Saturday?', '¿Adónde vas el sábado?', true);
+addCard('Whoa!', '¡Órale!', true);
+addCard('That’s great', '¡Qué bien!', true);
+addCard('Let’s go to the beach on Sunday?', '¿Vamos a la playa el domingo?', true);
+addCard('Let’s go to the movies on Wednesday?', '¿Vamos al cine el miércoles?', true);
+addCard('Yes, let’s go!', '¡Sí, vamos!', true);
+addCard('I can’t, sorry', 'No puedo, lo siento', true);
+addCard('Another day then!', '¡Será otro día!', true);
+addCard('Are you free Friday afternoon?', '¿Estás libre el viernes en la tarde?', true);
+addCard('Oh, really?', '¿A poco?', true);
+addCard('And at night?', '¿Y en la noche?', true);
+addCard('Ok!', '¡Va!', true);
+addCard('Haha, yes!', '¡Jaja, sí!', true);
+addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true);
 
 
     for (let i = state.cards.length - 1; i > 0; i--) {
