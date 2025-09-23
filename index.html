@@ -1232,7 +1232,7 @@ function openGame() {
     const candidates = shuffleArray([...targetWords, ...distractors]);
 
     // Обновляем UI раунда
-    elPrompt.textContent = `“${escapeHtml(promptTxt)}”`;
+    elPrompt.textContent = `“${promptTxt}”`;
     renderCandidates(candidates);
     resetAll();
   }
