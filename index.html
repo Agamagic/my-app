@@ -228,16 +228,24 @@
   transform:translateX(-50%);
   width:46px; height:46px;
   border:none; border-radius:999px;
-  background:linear-gradient(180deg,#1e9a66,#148c5c); /* приятный зелёный */
+  background:linear-gradient(180deg,#1e9a66,#148c5c);
   color:#fff; -webkit-text-fill-color:#fff;
   font-size:20px; line-height:1; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   box-shadow:var(--shadow-soft);
   transition:transform .12s var(--ease), opacity .2s var(--ease);
+
+  /* ✨ важно: поверх .zones и кликабельна */
+  z-index: 5;
+  pointer-events: auto;
 }
 .speakbtn:active{ transform:translateX(-50%) scale(.95); }
 .speakbtn:focus-visible{ outline:2px solid #8c7aff; outline-offset:3px; }
-  
+
+/* чтобы зоны не перекрывали всё подряд */
+.zones { pointer-events:none; }
+.zones button { pointer-events:auto; }
+
 </style>
 </head>
 
@@ -606,14 +614,16 @@
     elCounters.textContent = `Всего: ${total} • Выучено: ${learnedCount} • Повторить: ${toRepeat}`;
   }
   function currentCard(){ if(!state.currentId && state.cards.length) state.currentId=state.cards[0].id; return state.cards.find(c=>c.id===state.currentId)||null; }
-  function setCardTexts(c){ 
-  const dir=state.direction; 
-  const front=dir==='EN2ES'? c.front : c.back; 
-  const back=dir==='EN2ES'? c.back : c.front; 
-  elFront.textContent=front||'—'; 
+  function setCardTexts(c){
+  const dir   = state.direction;
+  const front = dir==='EN2ES' ? c.front : c.back;
+  const back  = dir==='EN2ES' ? c.back  : c.front;
+
+  elFront.textContent = front || '—';
   const targetBackEl = backContent || elBack;
   targetBackEl.textContent = back || '—';
-  }
+}
+
   function renderFlash(){ const c=currentCard(); if(!c){ elFront.textContent='Нет карточек'; elBack.textContent='Добавьте новые через ＋'; return;} setCardTexts(c); }
 
   function renderList(){
@@ -1033,6 +1043,35 @@ function speakSpanish(text){
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'es-ES';
 
+/* 🎵 Локальные аудио-файлы (папка /audio рядом с HTML) */
+const AUDIO_MAP = {
+  "Hola, ¿cómo estás?": "comoEstas.mp3",
+  "Muy bien, ¿y tú?": "muyBienYtu.mp3",
+  "Hola, mucho gusto": "holaMuchoGusto.mp3"
+};
+
+/* Играть mp3, если есть, иначе fallback на Web Speech */
+function playAudioForCardOrSpeak(card) {
+  // Берём ИСПАНСКУЮ сторону
+  const text = card?.back?.trim();
+  if (!text) return;
+
+  // 1) есть локальный файл?
+  const file = AUDIO_MAP[text];
+  if (file) {
+    const audio = new Audio('audio/' + file);
+    audio.play().catch(err => {
+      console.warn('Не удалось проиграть mp3, fallback на speech:', err);
+      speakSpanish(text);
+    });
+    return;
+  }
+
+  // 2) нет файла — читаем голосом
+  speakSpanish(text);
+}
+
+
   // выбираем испанский голос, если есть
   const pickVoice = () => {
     const voices = speechSynthesis.getVoices();
@@ -1049,11 +1088,16 @@ function speakSpanish(text){
   speechSynthesis.speak(u);
 }
 
-btnSpeak?.addEventListener('click', () => {
+btnSpeak?.addEventListener('click', (e) => {
+  // ⛔️ не даём клику «пробиться» до кнопки зоны flip
+  e.preventDefault();
+  e.stopPropagation();
+
   const c = currentCard();
   if (!c) return;
+
   // Всегда озвучиваем испанскую сторону карточки
-  const text = c.back || '';
+  const text = (state.direction === 'EN2ES' ? c.back : c.front) || '';
   if (text) speakSpanish(text);
 });
 
