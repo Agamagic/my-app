@@ -219,6 +219,25 @@
 
   /* Убираем tap-highlight на iOS/Android */
   .iconbtn, .chip, .btn { -webkit-tap-highlight-color: transparent; }
+  
+  /* 🔊 Кнопка озвучки на обратной стороне карточки */
+.speakbtn{
+  position:absolute;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  width:46px; height:46px;
+  border:none; border-radius:999px;
+  background:linear-gradient(180deg,#1e9a66,#148c5c); /* приятный зелёный */
+  color:#fff; -webkit-text-fill-color:#fff;
+  font-size:20px; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow-soft);
+  transition:transform .12s var(--ease), opacity .2s var(--ease);
+}
+.speakbtn:active{ transform:translateX(-50%) scale(.95); }
+.speakbtn:focus-visible{ outline:2px solid #8c7aff; outline-offset:3px; }
+  
 </style>
 </head>
 
@@ -250,7 +269,10 @@
       <div class="card3d" aria-label="Карточка">
         <div class="card" id="card">
           <div class="face front" id="frontText">Front</div>
-          <div class="face back" id="backText">Back</div>
+          <div class="face back" id="backText">
+  <span id="backContent">Back</span>
+  <button type="button" class="speakbtn" id="btnSpeak" title="Озвучить" aria-label="Озвучить фразу">🔊</button>
+</div>
         </div>
         <div class="zones" aria-hidden="true">
           <button id="zoneBack" title="Назад" aria-label="Назад"></button>
@@ -377,6 +399,8 @@
   /** ---------- DOM ---------- */
   const elProgressFill = $('#progressFill'), elProgressText=$('#progressText'), elCounters=$('#counters');
   const elFront=$('#frontText'), elBack=$('#backText'), elCard=$('#card'), elList=$('#list');
+  const backContent = document.querySelector('#backContent');
+  const btnSpeak    = document.querySelector('#btnSpeak');
   const mainListWrap = $('#mainListWrap');
   const settingsListWrap = $('#settingsListWrap');
   const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
@@ -582,7 +606,14 @@
     elCounters.textContent = `Всего: ${total} • Выучено: ${learnedCount} • Повторить: ${toRepeat}`;
   }
   function currentCard(){ if(!state.currentId && state.cards.length) state.currentId=state.cards[0].id; return state.cards.find(c=>c.id===state.currentId)||null; }
-  function setCardTexts(c){ const dir=state.direction; const front=dir==='EN2ES'? c.front : c.back; const back=dir==='EN2ES'? c.back : c.front; elFront.textContent=front||'—'; elBack.textContent=back||'—'; }
+  function setCardTexts(c){ 
+  const dir=state.direction; 
+  const front=dir==='EN2ES'? c.front : c.back; 
+  const back=dir==='EN2ES'? c.back : c.front; 
+  elFront.textContent=front||'—'; 
+  const targetBackEl = backContent || elBack;
+  targetBackEl.textContent = back || '—';
+  }
   function renderFlash(){ const c=currentCard(); if(!c){ elFront.textContent='Нет карточек'; elBack.textContent='Добавьте новые через ＋'; return;} setCardTexts(c); }
 
   function renderList(){
@@ -993,6 +1024,38 @@
   $('#zoneBack').addEventListener('click', ()=>prevCard());
   btnLearned.addEventListener('click', applyLearned);
   btnRepeat .addEventListener('click', applyRepeat);
+
+function speakSpanish(text){
+  if (!('speechSynthesis' in window)) {
+    alert('Озвучка не поддерживается в этом браузере');
+    return;
+  }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'es-ES';
+
+  // выбираем испанский голос, если есть
+  const pickVoice = () => {
+    const voices = speechSynthesis.getVoices();
+    const es = voices.find(v => /^es(-|_|$)/i.test(v.lang) || /spanish/i.test(v.name));
+    if (es) u.voice = es;
+  };
+  pickVoice();
+  // на некоторых браузерах голоса подгружаются асинхронно
+  if (speechSynthesis.onvoiceschanged === null) {
+    speechSynthesis.onvoiceschanged = () => pickVoice();
+  }
+
+  speechSynthesis.cancel(); // сбрасываем предыдущую озвучку
+  speechSynthesis.speak(u);
+}
+
+btnSpeak?.addEventListener('click', () => {
+  const c = currentCard();
+  if (!c) return;
+  // Всегда озвучиваем испанскую сторону карточки
+  const text = c.back || '';
+  if (text) speakSpanish(text);
+});
 
   /* Верхние табы */
   tabFlash.addEventListener('click', ()=>{ switchTab('flash'); setActiveNavLive(); });
