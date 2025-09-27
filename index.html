@@ -235,7 +235,6 @@
     </div>
     <div class="meta" id="progressText">Прогресс: 0% (0/0) | Повторить: 0</div>
 
-    <!-- PATCH: убран role="tablist" с .tabs, оставляем как чистую сетку -->
     <div class="tabs" aria-label="Навигация вкладок">
       <button class="iconbtn" id="btnSettings" title="Настройки" aria-label="Настройки">⚙️</button>
 
@@ -266,16 +265,19 @@
           <button id="zoneNext" title="Далее" aria-label="Далее"></button>
         </div>
       </div>
-      <div class="controls">
-        <button class="btn blue"  id="btnRepeat">↺ Повторить</button>
-        <button class="btn green" id="btnLearned">✔ Запомнил</button>
-      </div>
-      
-	  <!-- 🔊 Озвучить -->
+      <!-- 🔊 Озвучить -->
 <div class="controls">
   <button class="btn purple" id="btnSpeak"
           style="background:linear-gradient(180deg,#ff73d0,#ff3bb3); color:#fff; -webkit-text-fill-color:#fff;"
           title="Озвучить" aria-label="Озвучить фразу">🔊 Озвучить</button>
+</div>
+
+<!-- Две кнопки -->
+<div class="controls">
+  <button class="btn blue"  id="btnRepeat">↺ Повторить</button>
+  <button class="btn green" id="btnLearned">✔ Запомнил</button>
+</div>
+
 </div>
 
     <div class="row"><div id="counters" class="meta">Всего: 0 • Выучено: 0 • Повторить: 0</div></div>
