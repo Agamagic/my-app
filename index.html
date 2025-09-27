@@ -325,7 +325,7 @@
 <div class="row" style="flex-direction:column;align-items:flex-start;width:100%">
   <div>Голос озвучки</div>
   <select id="voiceSelect" style="width:100%;background:#231e46;color:var(--text);border:none;border-radius:12px;padding:10px 12px;outline:none"></select>
-  <button type="button" class="chip" id="btnVoiceTest">Пробный звук</button>
+  <button type="button" class="chip" id="btnVoiceTest">Прослушать</button>
   <div class="footnote">Совет: выбери es-MX (лат. Америка) или es-ES (Испания).</div>
 </div>
 
@@ -488,10 +488,8 @@ function populateVoiceSelect() {
   }
 }
 
-// Когда браузер подгрузит голоса — обновим селект
-speechSynthesis.onvoiceschanged = () => {
-  populateVoiceSelect();
-};
+// Когда браузер подгрузит голоса — обновим селект (не перезаписываем обработчики)
+speechSynthesis.addEventListener('voiceschanged', populateVoiceSelect);
 
   /** ---------- App ---------- */
   function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
@@ -656,25 +654,44 @@ speechSynthesis.onvoiceschanged = () => {
     addCard('And what are you doing on Sunday?', '¿Y qué haces el domingo?', true);
     addCard('The conversation will be now!', '¡Será ahora la conversación!', true);
 	addCard('See you soon', '¡Nos vemos pronto!', true);
-addCard('What do you study?', '¿Qué estudias?', true);
-addCard('I study Spanish', 'Estudio español', true);
-addCard('Wow! You speak Spanish very well!', '¡Hablas español muy bien!', true);
-addCard('Oh!', '¡Vaya!', true);
-addCard('How delicious!', '¡Qué ricos!', true);
-addCard('Cheese', 'queso', true);
-addCard('Chicken', 'pollo', true);
-addCard('Shrimp', 'camarón', true);
-addCard('Meat', 'carne', true);
-addCard('What’s your job?', '¿En qué trabajas?', true);
-addCard('I’m a student', 'Soy estudiante', true);
-addCard('I’m a (male) designer', 'Soy diseñador', true);
-addCard('I’m a (female) designer', 'Soy diseñadora', true);
-addCard('I’m an engineer', '¡Soy ingeniera!', true);
-addCard('No way', '¡No inventes!', true);
-addCard('What are you doing today?', '¿Qué haces hoy?', true);
-addCard('What are you doing tomorrow?', '¿Qué haces mañana?', true);
-addCard('I go out with my friends', 'Salgo con mis amigos', true);
-addCard('I rest', 'descanso', true);
+	addCard('What do you study?', '¿Qué estudias?', true);
+	addCard('I study Spanish', 'Estudio español', true);
+	addCard('Wow! You speak Spanish very well!', '¡Hablas español muy bien!', true);
+	addCard('Oh!', '¡Vaya!', true);
+	addCard('How delicious!', '¡Qué ricos!', true);
+	addCard('Cheese', 'queso', true);
+	addCard('Chicken', 'pollo', true);
+	addCard('Shrimp', 'camarón', true);
+	addCard('Meat', 'carne', true);
+	addCard('What’s your job?', '¿En qué trabajas?', true);
+	addCard('I’m a student', 'Soy estudiante', true);
+	addCard('I’m a (male) designer', 'Soy diseñador', true);
+	addCard('I’m a (female) designer', 'Soy diseñadora', true);
+	addCard('I’m an engineer', '¡Soy ingeniera!', true);
+	addCard('No way', '¡No inventes!', true);
+	addCard('What are you doing today?', '¿Qué haces hoy?', true);
+	addCard('What are you doing tomorrow?', '¿Qué haces mañana?', true);
+	addCard('I go out with my friends', 'Salgo con mis amigos', true);
+	addCard('I rest', 'descanso', true);
+	addCard('Great!','¡Genial!',true);
+	addCard('A sandwich without cheese, please','Un sándwich sin queso, por favor',true);
+	addCard('A salad with shrimp, please','Una ensalada con camarones, por favor',true); // ES(Europe): "con gambas"
+	addCard('Without cheese or with cheese?','¿Sin queso o con queso?',true);
+	addCard('The check, please','La cuenta, por favor',true);
+	addCard('Yes, of course. Here you go.','Sí, claro. Aquí tiene.',true);
+	addCard('Good, too','Bien, también',true);
+	addCard('What are you doing now?','¿Qué haces ahora?',true);
+	addCard('I\'m eating','Estoy comiendo',true);
+	addCard('I\'m cooking','Estoy cocinando',true);
+	addCard('I\'m at school','Estoy en la escuela',true);
+	addCard('What are you doing at school?','¿Qué haces en la escuela?',true);
+	addCard('I study medicine at school','Estudio medicina en la escuela',true);
+	addCard('Wow! Good for you!','¡Vaya! ¡Bien por ti!',true);
+	addCard('That\'s delicious!','¡Qué rico!',true);
+	addCard('I\'m resting at the park','Estoy descansando en el parque',true);
+	addCard('What is your daily routine?','¿Cuál es tu rutina diaria?',true);
+	addCard('Can you repeat that for me?','¿Me lo puedes repetir?',true);
+	
 
     for (let i = state.cards.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -1177,9 +1194,24 @@ if (typeof speechSynthesis.onvoiceschanged === 'object') {
   speechSynthesis.onvoiceschanged = () => applyBestSpanishVoice();
 }
 
-// ✅ чуть более «испанская» подача
-u.rate  = 0.92;  // темп (чуть медленнее — разборчивее)
-u.pitch = 1.02;  // тон (слегка живее)
+// ✅ чуть более «испанская» подача + отдельная скорость для Paulina (es-MX)
+const BASE_RATE  = 0.92;
+const BASE_PITCH = 1.02;
+
+let rate  = BASE_RATE;
+let pitch = BASE_PITCH;
+
+const vname = (u.voice?.name || '').toLowerCase();
+const vlang = (u.voice?.lang || '').toLowerCase();
+
+// Paulina (Мексика) — слегка медленнее
+if (vname.includes('paulina') && vlang.startsWith('es-mx')) {
+  rate = 0.86; // ~чуть медленнее (подбери 0.84–0.90 по вкусу)
+}
+
+u.rate  = rate;   // скорость речи (iOS обычно хорошо реагирует на 0.8–1.2)
+u.pitch = pitch;  // тон
+
 
 // чтобы не «обрубало» конец — гарантируем завершающий знак
 if (!/[.!?…]$/.test(u.text.trim())) u.text += '.';
@@ -1546,6 +1578,12 @@ btnGame?.addEventListener('click', openGame);
     applyListVisibility();
     switchTab(state.tab || 'flash');
     flipCard(false);
+	// Прогреваем движок TTS: некоторые браузеры иначе не отдают getVoices()
+try { speechSynthesis.getVoices(); } catch {}
+// Несколько попыток заполнить селект (на случай задержки)
+setTimeout(populateVoiceSelect, 0);
+setTimeout(populateVoiceSelect, 400);
+setTimeout(populateVoiceSelect, 1200);
 
     miniTests();
   }
