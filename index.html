@@ -303,7 +303,16 @@
     🎮 Игра
   </button>
 </div>
-	
+	<!-- 🔎 Поиск по словарю (EN/ES) — ДОБАВИТЬ СРАЗУ ПОД КНОПКОЙ ИГРЫ -->
+<div class="row" id="searchRow" style="width:100%; margin-top:10px;">
+  <input id="searchInput" placeholder="Поиск: en/es (например, cheese / queso)"
+         autocomplete="off"
+         style="flex:1; appearance:none; border:none; border-radius:12px; padding:12px 14px;
+                background:#231e46; color:var(--text); outline:none; width:100%;">
+</div>
+<div class="listwrap" id="searchResultsWrap" hidden>
+  <div class="list" id="searchResultsList"></div>
+</div>
   </section>
 </div>
 
@@ -379,6 +388,15 @@
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const now = ()=>Date.now();
   function prng(seed){ const x = Math.sin(seed)*10000; return x - Math.floor(x); }
+  // 🔎 НОВОЕ: нормализация текста для поиска (регистр/акценты/пробелы)
+  function stripDiacritics(s){
+    return String(s||'')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu,''); // убираем все диакритики (á→a, ñ→n и т.д.)
+  }
+  function normSearch(s){
+    return stripDiacritics(s).toLowerCase().replace(/\s+/g,' ').trim();
+  }
   function weightedPick(weights, excludeIndex=null, seed=1){
     const n=weights.length, total=weights.reduce((a,b)=>a+b,0); if(total<=0)return -1;
     let r=prng(seed)*total, acc=0, pick=0; for(let i=0;i<n;i++){ acc+=weights[i]; if(r<=acc){ pick=i; break; } }
@@ -421,7 +439,11 @@
   const autoTranslate=$('#autoTranslate'), btnTranslate=$('#btnTranslate'), trStatus=$('#trStatus');
   const bgPalette=$('#bgPalette'), cardPalette=$('#cardPalette');
   const btnGame = $('#btnGame'); /* 🎮 */
-  // UI для выбора голоса
+  // 🔎 НОВОЕ: элементы поиска
+  const searchInput      = $('#searchInput');
+  const searchResultsWrap= $('#searchResultsWrap');
+  const searchResultsList= $('#searchResultsList');
+ // UI для выбора голоса
 let voiceSelect = null;
 let btnVoiceTest = null;
 
@@ -609,7 +631,7 @@ speechSynthesis.addEventListener('voiceschanged', populateVoiceSelect);
     addCard('The beach','la playa', true);
     addCard('Saturday','sábado', true);
     addCard('Are you free on Thursday?','¿Estás libre el jueves?', true);
-    addCard('Shall we go to the restaurante on Monday?','¡Vamos al restaurante el lunes', true);
+    addCard('Shall we go to the restaurante on Monday?','¿Vamos al restaurante el lunes?', true);
     addCard('Week','semana', true);
     addCard('I’m busy on Thursday','Estoy ocupado el jueves', true);
     addCard('Well said!','¡Bien dicho!', true);
@@ -1595,6 +1617,80 @@ function shuffleArray(arr){
 
 btnGame?.addEventListener('click', openGame);
 
+  // 🔎 Поиск по карточкам (оба направления EN/ES)
+  function doSearch(query){
+    const q = normSearch(query);
+    if (!q) {
+      searchResultsWrap.hidden = true;
+      searchResultsList.innerHTML = '';
+      return;
+    }
+
+    const parts = q.split(' ').filter(Boolean);
+
+    const matches = state.cards.filter(c=>{
+      const a = normSearch(c.front);
+      const b = normSearch(c.back);
+      // все введённые слова должны присутствовать либо в EN, либо в ES
+      const inA = parts.every(p => a.includes(p));
+      const inB = parts.every(p => b.includes(p));
+      return inA || inB;
+    });
+
+    renderSearchResults(matches);
+  }
+
+  function renderSearchResults(items){
+    if (!items.length){
+      searchResultsList.innerHTML = `<div style="padding:14px;color:var(--muted)">Ничего не найдено</div>`;
+      searchResultsWrap.hidden = false;
+      return;
+    }
+
+    searchResultsList.innerHTML = items.map(c=>{
+      const status = c.learned? '✔ выучено'
+        : (c.repeat||c.hard||c.box<=2)? '↺ повторить' : 'в процессе';
+
+      return `<details data-id="${c.id}">
+        <summary>
+          <span>${escapeHtml(c.front)} <span class="status">— ${escapeHtml(c.back)}</span></span>
+          <span class="status">${status}<span class="pill">Box ${c.box}</span></span>
+        </summary>
+        <div style="padding:0 14px 12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip" data-act="focus">Показать</button>
+          <button class="chip" data-act="markLearned">✔ Запомнил</button>
+          <button class="chip" data-act="markRepeat">↺ Повторить</button>
+          <button class="chip" data-act="boxUp">⬆ Box</button>
+          <button class="chip" data-act="boxDown">⬇ Box</button>
+        </div>
+      </details>`;
+    }).join('');
+
+    searchResultsWrap.hidden = false;
+  }
+
+  // обработчик кликов по результатам — такие же действия, как в основном списке
+  searchResultsList?.addEventListener('click',(e)=>{
+    const btn=e.target.closest('button.chip'); if(!btn) return;
+    const details=e.target.closest('details'); if(!details) return;
+    const id=details.getAttribute('data-id'); const card=state.cards.find(c=>c.id===id); if(!card) return;
+    const act=btn.getAttribute('data-act');
+
+    if (act === 'focus') {
+      if (state.currentId) state.history.push(state.currentId);
+      state.currentId = id;
+      renderFlash();
+      details.open = false;
+      saveState();
+    }
+    if(act==='markLearned'){ card.learned=true; card.repeat=false; card.hard=false; card.box=clamp(card.box+1,1,5); }
+    if(act==='markRepeat'){ card.repeat=true; card.hard=true; card.learned=false; card.box=Math.min(card.box,2); }
+    if(act==='boxUp'){ card.box=clamp(card.box+1,1,5); }
+    if(act==='boxDown'){ card.box=clamp(card.box-1,1,5); }
+
+    saveState(); refreshProgressUI(); renderList(); renderFlash();
+  });
+
 
   /** Init */
   function init(){
@@ -1626,9 +1722,29 @@ setTimeout(populateVoiceSelect, 0);
 setTimeout(populateVoiceSelect, 400);
 setTimeout(populateVoiceSelect, 1200);
 
+  // 🔎 привязываем поиск
+  if (searchInput) {
+    searchInput.addEventListener('input', (e)=> doSearch(e.target.value));
+  }
+
     miniTests();
   }
   init();
+
+  // При переключении вкладок — очищаем результаты, чтобы не мешались в Cards
+  function clearSearchUI(){
+    if (!searchInput) return;
+    searchInput.value = '';
+    if (searchResultsList) searchResultsList.innerHTML = '';
+    if (searchResultsWrap) searchResultsWrap.hidden = true;
+  }
+
+  // дополняем switchTab, чтобы зачистить поиск при уходе с Quiz
+  const _switchTabOrig = switchTab;
+  switchTab = function(tab){
+    _switchTabOrig(tab);
+    if (tab !== 'quiz') clearSearchUI();
+  };
 
   /** Mini tests */
   function miniTests(){
