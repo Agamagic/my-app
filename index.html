@@ -84,6 +84,12 @@
     line-height:1; font-size:18px;
     cursor:pointer; transition:transform .15s var(--ease), opacity .15s var(--ease);
   }
+  /* 🎯 НОВОЕ — чтобы кнопка лупы аккуратно садилась к полю поиска */
+#btnSearchGo.iconbtn {
+  width:46px;
+  height:46px;
+  margin-left:6px; /* можно убрать, если и так красиво */
+}
   .iconbtn:active{ transform:scale(.95) }
 
   .tabbar{display:flex;background:#1f1a3a;border-radius:12px;padding:4px;gap:4px;box-shadow:var(--shadow-soft)}
@@ -317,6 +323,7 @@
          autocomplete="off"
          style="flex:1; appearance:none; border:none; border-radius:12px; padding:12px 14px;
                 background:#231e46; color:var(--text); outline:none; width:100%;">
+  <button id="btnSearchGo" class="iconbtn" title="Найти" aria-label="Найти">🔍</button>
 </div>
 <div class="listwrap" id="searchResultsWrap" hidden>
   <div class="list" id="searchResultsList"></div>
@@ -443,19 +450,53 @@
     quiz: { pool:[], index:0, right:0, finished:false, lastAnswer:null }
   };
 
-  /** ---------- DOM ---------- */
-  const elProgressFill = $('#progressFill'), elProgressText=$('#progressText'), elCounters=$('#counters');
-  const elFront=$('#frontText'), elBack=$('#backText'), elCard=$('#card'), elList=$('#list');
-  const backContent = document.querySelector('#backContent');
-  const btnSpeak    = document.querySelector('#btnSpeak');
-  const mainListWrap = $('#mainListWrap');
-  const settingsListWrap = $('#settingsListWrap');
-  
-  const dlgSearch        = $('#dlgSearch');
-const searchDialogWrap = $('#searchDialogWrap');
-const searchDialogList = $('#searchDialogList');
-const btnSearchClose   = $('#btnSearchClose');
+ /** ---------- DOM ---------- */
+const elProgressFill = $('#progressFill'), elProgressText=$('#progressText'), elCounters=$('#counters');
+const elFront=$('#frontText'), elBack=$('#backText'), elCard=$('#card'), elList=$('#list');
+const backContent = document.querySelector('#backContent');
+const btnSpeak    = document.querySelector('#btnSpeak');
+const mainListWrap = $('#mainListWrap');
+const settingsListWrap = $('#settingsListWrap');
 
+/* 🔎 Поиск: поле, старый список (на всякий), кнопка-лупа и модалка */
+const searchInput       = $('#searchInput');
+const searchResultsWrap = $('#searchResultsWrap');
+const searchResultsList = $('#searchResultsList');
+const btnSearchGo       = $('#btnSearchGo');
+
+const dlgSearch         = $('#dlgSearch');
+const searchDialogWrap  = $('#searchDialogWrap');
+const searchDialogList  = $('#searchDialogList');
+const btnSearchClose    = $('#btnSearchClose');
+
+/* ✅ единая функция запуска поиска */
+function triggerSearch() {
+  const q = (searchInput?.value || '').trim();
+  if (!q) {                       // пусто — закрываем модалку и чистим
+    if (dlgSearch?.open) dlgSearch.close();
+    if (searchDialogList) searchDialogList.innerHTML = '';
+    if (searchResultsWrap) searchResultsWrap.hidden = true;
+    return;
+  }
+  if (q.length < 2) return;       // ждём хотя бы 2 символа
+  doSearch(q);
+}
+
+/* ▶️ Клик по лупе */
+btnSearchGo?.addEventListener('click', (e) => {
+  e.preventDefault();
+  triggerSearch();
+});
+
+/* ⏎ Enter в поле поиска */
+searchInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    triggerSearch();
+  }
+});
+
+/* ❌ Закрыть модалку поиска */
 btnSearchClose?.addEventListener('click', ()=> {
   dlgSearch.close();
   searchInput?.focus();
@@ -473,10 +514,7 @@ btnSearchClose?.addEventListener('click', ()=> {
   const autoTranslate=$('#autoTranslate'), btnTranslate=$('#btnTranslate'), trStatus=$('#trStatus');
   const bgPalette=$('#bgPalette'), cardPalette=$('#cardPalette');
   const btnGame = $('#btnGame'); /* 🎮 */
-  // 🔎 НОВОЕ: элементы поиска
-  const searchInput      = $('#searchInput');
-  const searchResultsWrap= $('#searchResultsWrap');
-  const searchResultsList= $('#searchResultsList');
+ 
  // UI для выбора голоса
 let voiceSelect = null;
 let btnVoiceTest = null;
@@ -1756,12 +1794,7 @@ try { speechSynthesis.getVoices(); } catch {}
 setTimeout(populateVoiceSelect, 0);
 setTimeout(populateVoiceSelect, 400);
 setTimeout(populateVoiceSelect, 1200);
-
-  // 🔎 привязываем поиск
-  if (searchInput) {
-    searchInput.addEventListener('input', (e)=> doSearch(e.target.value));
-  }
-
+ 
     miniTests();
   }
   init();
