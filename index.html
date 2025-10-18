@@ -175,14 +175,13 @@
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
   }
-  /* ✅ прокрутка только у результатов поиска */
-#searchResultsWrap {
-  max-height: 60dvh;              /* ограничиваем высоту блока */
-  overflow-y: auto;               /* вертикальный скролл */
-  -webkit-overflow-scrolling: touch; /* плавность на iOS */
-  touch-action: pan-y;            /* переопределяем .wrap { touch-action:none } */
+ /* ✅ прокрутка только у результатов в диалоге поиска */
+#searchDialogWrap{
+  max-height: 65dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
-
   
   .modal h3{margin:0 0 10px}
   .modal .row{margin-top:10px}
@@ -388,6 +387,21 @@
   </form>
 </dialog>
 
+<!-- SEARCH MODAL -->
+<dialog id="dlgSearch" aria-label="Результаты поиска">
+  <form method="dialog" class="modal" style="max-width:min(92vw,520px)">
+    <h3>Результаты поиска</h3>
+
+    <div class="listwrap" id="searchDialogWrap">
+      <div class="list" id="searchDialogList"></div>
+    </div>
+
+    <div class="actions">
+      <button class="chip" value="cancel" id="btnSearchClose">Закрыть</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 (() => {
   const STORAGE_KEY = 'minimal-flashcards-html-v1';
@@ -436,6 +450,17 @@
   const btnSpeak    = document.querySelector('#btnSpeak');
   const mainListWrap = $('#mainListWrap');
   const settingsListWrap = $('#settingsListWrap');
+  
+  const dlgSearch        = $('#dlgSearch');
+const searchDialogWrap = $('#searchDialogWrap');
+const searchDialogList = $('#searchDialogList');
+const btnSearchClose   = $('#btnSearchClose');
+
+btnSearchClose?.addEventListener('click', ()=> {
+  dlgSearch.close();
+  searchInput?.focus();
+});
+  
   const elBtnDir=$('#btnDirection'), btnToggleList=$('#btnToggleList');
   const elZoneBack=$('#zoneBack'), elZoneFlip=$('#zoneFlip'), elZoneNext=$('#zoneNext');
   const btnLearned=$('#btnLearned'), btnRepeat=$('#btnRepeat');
@@ -1626,80 +1651,81 @@ function shuffleArray(arr){
 
 btnGame?.addEventListener('click', openGame);
 
-  // 🔎 Поиск по карточкам (оба направления EN/ES)
-  function doSearch(query){
-    const q = normSearch(query);
-    if (!q) {
-      searchResultsWrap.hidden = true;
-      searchResultsList.innerHTML = '';
-      return;
-    }
-
-    const parts = q.split(' ').filter(Boolean);
-
-    const matches = state.cards.filter(c=>{
-      const a = normSearch(c.front);
-      const b = normSearch(c.back);
-      // все введённые слова должны присутствовать либо в EN, либо в ES
-      const inA = parts.every(p => a.includes(p));
-      const inB = parts.every(p => b.includes(p));
-      return inA || inB;
-    });
-
-    renderSearchResults(matches);
+function doSearch(query){
+  const q = normSearch(query);
+  if (!q) {
+    // пустая строка — закрываем диалог и чистим
+    if (dlgSearch?.open) dlgSearch.close();
+    if (searchDialogList) searchDialogList.innerHTML = '';
+    if (searchResultsWrap) searchResultsWrap.hidden = true;
+    return;
   }
 
-  function renderSearchResults(items){
-    if (!items.length){
-      searchResultsList.innerHTML = `<div style="padding:14px;color:var(--muted)">Ничего не найдено</div>`;
-      searchResultsWrap.hidden = false;
-      return;
-    }
-
-    searchResultsList.innerHTML = items.map(c=>{
-      const status = c.learned? '✔ выучено'
-        : (c.repeat||c.hard||c.box<=2)? '↺ повторить' : 'в процессе';
-
-      return `<details data-id="${c.id}">
-        <summary>
-          <span>${escapeHtml(c.front)} <span class="status">— ${escapeHtml(c.back)}</span></span>
-          <span class="status">${status}<span class="pill">Box ${c.box}</span></span>
-        </summary>
-        <div style="padding:0 14px 12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap">
-          <button class="chip" data-act="focus">Показать</button>
-          <button class="chip" data-act="markLearned">✔ Запомнил</button>
-          <button class="chip" data-act="markRepeat">↺ Повторить</button>
-          <button class="chip" data-act="boxUp">⬆ Box</button>
-          <button class="chip" data-act="boxDown">⬇ Box</button>
-        </div>
-      </details>`;
-    }).join('');
-
-    searchResultsWrap.hidden = false;
-  }
-
-  // обработчик кликов по результатам — такие же действия, как в основном списке
-  searchResultsList?.addEventListener('click',(e)=>{
-    const btn=e.target.closest('button.chip'); if(!btn) return;
-    const details=e.target.closest('details'); if(!details) return;
-    const id=details.getAttribute('data-id'); const card=state.cards.find(c=>c.id===id); if(!card) return;
-    const act=btn.getAttribute('data-act');
-
-    if (act === 'focus') {
-      if (state.currentId) state.history.push(state.currentId);
-      state.currentId = id;
-      renderFlash();
-      details.open = false;
-      saveState();
-    }
-    if(act==='markLearned'){ card.learned=true; card.repeat=false; card.hard=false; card.box=clamp(card.box+1,1,5); }
-    if(act==='markRepeat'){ card.repeat=true; card.hard=true; card.learned=false; card.box=Math.min(card.box,2); }
-    if(act==='boxUp'){ card.box=clamp(card.box+1,1,5); }
-    if(act==='boxDown'){ card.box=clamp(card.box-1,1,5); }
-
-    saveState(); refreshProgressUI(); renderList(); renderFlash();
+  const parts = q.split(' ').filter(Boolean);
+  const matches = state.cards.filter(c=>{
+    const a = normSearch(c.front);
+    const b = normSearch(c.back);
+    const inA = parts.every(p => a.includes(p));
+    const inB = parts.every(p => b.includes(p));
+    return inA || inB;
   });
 
+  renderSearchResults(matches);
+}
+
+function renderSearchResults(items){
+  // Старый встроенный блок прячем, чтобы не путал
+  if (searchResultsWrap) searchResultsWrap.hidden = true;
+
+  if (!items.length){
+    searchDialogList.innerHTML = `<div style="padding:14px;color:var(--muted)">Ничего не найдено</div>`;
+    if (!dlgSearch.open) dlgSearch.showModal();
+    return;
+  }
+
+  searchDialogList.innerHTML = items.map(c=>{
+    const status = c.learned ? '✔ выучено'
+      : (c.repeat||c.hard||c.box<=2)? '↺ повторить' : 'в процессе';
+
+    return `<details data-id="${c.id}">
+      <summary>
+        <span>${escapeHtml(c.front)} <span class="status">— ${escapeHtml(c.back)}</span></span>
+        <span class="status">${status}<span class="pill">Box ${c.box}</span></span>
+      </summary>
+      <div style="padding:0 14px 12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap">
+        <button class="chip" data-act="focus">Показать</button>
+        <button class="chip" data-act="markLearned">✔ Запомнил</button>
+        <button class="chip" data-act="markRepeat">↺ Повторить</button>
+        <button class="chip" data-act="boxUp">⬆ Box</button>
+        <button class="chip" data-act="boxDown">⬇ Box</button>
+      </div>
+    </details>`;
+  }).join('');
+
+  if (!dlgSearch.open) dlgSearch.showModal();
+}
+
+searchDialogList?.addEventListener('click',(e)=>{
+  const btn=e.target.closest('button.chip'); if(!btn) return;
+  const details=e.target.closest('details'); if(!details) return;
+  const id=details.getAttribute('data-id'); const card=state.cards.find(c=>c.id===id); if(!card) return;
+  const act=btn.getAttribute('data-act');
+
+  if (act === 'focus') {
+    if (state.currentId) state.history.push(state.currentId);
+    state.currentId = id;
+    renderFlash();
+    details.open = false;
+    dlgSearch.close(); // сразу закрываем диалог после «Показать»
+    saveState();
+  }
+  if(act==='markLearned'){ card.learned=true; card.repeat=false; card.hard=false; card.box=clamp(card.box+1,1,5); }
+  if(act==='markRepeat'){ card.repeat=true; card.hard=true; card.learned=false; card.box=Math.min(card.box,2); }
+  if(act==='boxUp'){ card.box=clamp(card.box+1,1,5); }
+  if(act==='boxDown'){ card.box=clamp(card.box-1,1,5); }
+
+  saveState(); refreshProgressUI(); renderList(); renderFlash();
+});
 
   /** Init */
   function init(){
@@ -1741,12 +1767,14 @@ setTimeout(populateVoiceSelect, 1200);
   init();
 
   // При переключении вкладок — очищаем результаты, чтобы не мешались в Cards
-  function clearSearchUI(){
-    if (!searchInput) return;
-    searchInput.value = '';
-    if (searchResultsList) searchResultsList.innerHTML = '';
-    if (searchResultsWrap) searchResultsWrap.hidden = true;
-  }
+function clearSearchUI(){
+  if (!searchInput) return;
+  searchInput.value = '';
+  if (searchResultsList) searchResultsList.innerHTML = '';
+  if (searchResultsWrap) searchResultsWrap.hidden = true;
+  if (dlgSearch?.open) dlgSearch.close();              // 🔒 закрыть диалог
+  if (searchDialogList) searchDialogList.innerHTML = '';
+}
 
   // дополняем switchTab, чтобы зачистить поиск при уходе с Quiz
   const _switchTabOrig = switchTab;
@@ -1770,8 +1798,8 @@ setTimeout(populateVoiceSelect, 1200);
 
   /* PATCH: позволяем скролл внутри .wrap/диалогов, блокируем только фоновую пружину */
   document.addEventListener('touchmove', (e)=>{
-  // Разрешаем жесты в модалках, списке настроек и результатах поиска
-  if (e.target.closest('#searchResultsWrap, #settingsListWrap, dialog')) return;
+  // Разрешаем жесты в модалках + их прокручиваемых областях
+  if (e.target.closest('#searchDialogWrap, #settingsListWrap, dialog')) return;
   e.preventDefault();
 }, { passive:false });
 
