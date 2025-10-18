@@ -175,6 +175,15 @@
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
   }
+  /* ✅ прокрутка только у результатов поиска */
+#searchResultsWrap {
+  max-height: 60dvh;              /* ограничиваем высоту блока */
+  overflow-y: auto;               /* вертикальный скролл */
+  -webkit-overflow-scrolling: touch; /* плавность на iOS */
+  touch-action: pan-y;            /* переопределяем .wrap { touch-action:none } */
+}
+
+  
   .modal h3{margin:0 0 10px}
   .modal .row{margin-top:10px}
   .modal input{width:100%; appearance:none; border:none; border-radius:12px; padding:10px 12px; background:#231e46; color:var(--text); outline:none}
@@ -1761,10 +1770,10 @@ setTimeout(populateVoiceSelect, 1200);
 
   /* PATCH: позволяем скролл внутри .wrap/диалогов, блокируем только фоновую пружину */
   document.addEventListener('touchmove', (e)=>{
-    // Разрешаем жесты ТОЛЬКО внутри модалок и их списке
-    if (e.target.closest('#settingsListWrap, dialog')) return;
-    e.preventDefault(); // ⛔️ везде вне настроек — блок
-  }, { passive:false });
+  // Разрешаем жесты в модалках, списке настроек и результатах поиска
+  if (e.target.closest('#searchResultsWrap, #settingsListWrap, dialog')) return;
+  e.preventDefault();
+}, { passive:false });
 
 })();
 </script>
